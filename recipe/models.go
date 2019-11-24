@@ -27,3 +27,9 @@ type SubRecipe struct {
 	Name     string `json:"name"`
 	RecipeID string `json:"recipeId"`
 }
+
+// Description is a short representation of a recipe
+type Description struct {
+	ID   primitive.ObjectID `son:"id" bson:"_id,omitempty"`
+	Name string             `json:"name"`
+}
