@@ -15,7 +15,7 @@ func TestFindOne(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
-	connection := Connection{connect}
+	connection := New(connect)
 	ing, err := connection.FindOne(context.Background(), "5dbc80036eb36874255e7fcd")
 
 	assert.Nil(t, err)

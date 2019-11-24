@@ -15,6 +15,11 @@ type Connection struct {
 	db fridgedoordatabase.Connection
 }
 
+// New creates an instance of recipe.Connection
+func New(db fridgedoordatabase.Connection) *Connection {
+	return &Connection{db}
+}
+
 // FindOne does not find one
 func (conn *Connection) FindOne(ctx context.Context, id string) (*Recipe, error) {
 
