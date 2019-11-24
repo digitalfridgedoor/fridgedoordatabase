@@ -38,6 +38,20 @@ func TestList(t *testing.T) {
 	assert.LessOrEqual(t, len(recipes), 25)
 }
 
+func TestCreate(t *testing.T) {
+	connectionstring := getEnvironmentVariable("connectionstring")
+	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+
+	connection := New(connect)
+	recipe, err := connection.Create(context.Background(), "5d8f7300a7888700270f7752", "new recipe")
+
+	assert.Nil(t, err)
+	assert.NotNil(t, recipe)
+	assert.Equal(t, "new recipe", recipe.Name)
+
+	connection.Delete(context.Background(), recipe.ID)
+}
+
 func getEnvironmentVariable(key string) string {
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)

@@ -6,6 +6,8 @@ import (
 
 	"github.com/digitalfridgedoor/fridgedoordatabase/user"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -28,17 +30,32 @@ func (conn *Connection) Create(ctx context.Context, userID string, name string) 
 		AddedBy: userInfo.ID,
 	}
 
-	_, err = collection.InsertOne(ctx, recipe, insertOneOptions)
+	insertOneResult, err := collection.InsertOne(ctx, recipe, insertOneOptions)
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
 
-	// insertOneResult.InsertedID
+	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
-	// userInfo.Recipes
+	err = u.AddRecipeToUser(ctx, userID, insertedID)
+	if err != nil {
+		return nil, err
+	}
 
-	// ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
+	return conn.FindOne(ctx, insertedID.Hex())
+}
 
-	// return ing.(*Recipe), err
+// Delete removes a recipe
+func (conn *Connection) Delete(ctx context.Context, recipeID primitive.ObjectID) error {
+
+	collection := conn.collection()
+
+	deleteOptions := options.Delete()
+
+	_, err := collection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: recipeID}}, deleteOptions)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
