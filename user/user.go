@@ -1,12 +1,12 @@
-package recipe
+package user
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
+	"digitalfridgedoor/fridgedoordatabase"
 
-	"github.com/digitalfridgedoor/fridgedoordatabase"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Connection can find and parse Recipes from mongodb
+// Connection can find and parse Users from mongodb
 type Connection struct {
 	db fridgedoordatabase.Connection
 }
@@ -17,5 +17,5 @@ func New(db fridgedoordatabase.Connection) *Connection {
 }
 
 func (conn *Connection) collection() *mongo.Collection {
-	return conn.db.Collection("recipeapi", "recipes")
+	return conn.db.Collection("recipeapi", "users")
 }
