@@ -2,8 +2,9 @@ package recipe
 
 import (
 	"context"
-	"digitalfridgedoor/fridgedoordatabase"
 	"time"
+
+	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
