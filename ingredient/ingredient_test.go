@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestFind(t *testing.T) {

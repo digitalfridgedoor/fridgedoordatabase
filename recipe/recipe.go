@@ -3,7 +3,7 @@ package recipe
 import (
 	"context"
 
-	"digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
