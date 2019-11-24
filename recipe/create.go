@@ -1,32 +1,44 @@
 package recipe
 
-// import (
-// 	"context"
-// 	"digitalfridgedoor/fridgedoordatabase"
+import (
+	"context"
+	"time"
 
-// 	"go.mongodb.org/mongo-driver/bson"
-// 	"go.mongodb.org/mongo-driver/bson/primitive"
-// 	"go.mongodb.org/mongo-driver/mongo/options"
-// )
+	"github.com/digitalfridgedoor/fridgedoordatabase/user"
 
-// // Create creates a new recipe with given name
-// func (conn *Connection) Create(ctx context.Context, userID string, name string) (*Recipe, error) {
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
-// 	collection := conn.collection()
+// Create creates a new recipe with given name
+func (conn *Connection) Create(ctx context.Context, userID string, name string) (*Recipe, error) {
 
-// 	insertOneOptions := options.InsertOne()
+	u := user.New(conn.db)
+	userInfo, err := u.FindOne(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	objID, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	collection := conn.collection()
 
-// 	singleResult := collection.InsertOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
+	insertOneOptions := options.InsertOne()
 
-// 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	recipe := &Recipe{
+		Name:    name,
+		AddedOn: time.Now(),
+		AddedBy: userInfo.ID,
+	}
 
-// 	return ing.(*Recipe), err
-// }
+	_, err = collection.InsertOne(ctx, recipe, insertOneOptions)
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
+
+	// insertOneResult.InsertedID
+
+	// userInfo.Recipes
+
+	// ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
+
+	// return ing.(*Recipe), err
+}

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )

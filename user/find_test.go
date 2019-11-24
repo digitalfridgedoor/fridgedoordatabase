@@ -2,10 +2,11 @@ package user
 
 import (
 	"context"
-	"digitalfridgedoor/fridgedoordatabase"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"github.com/stretchr/testify/assert"
 )
