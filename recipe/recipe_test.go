@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase/user"
 )
 
 func TestFindOne(t *testing.T) {
@@ -43,13 +44,18 @@ func TestCreate(t *testing.T) {
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
 	connection := New(connect)
-	recipe, err := connection.Create(context.Background(), "5d8f7300a7888700270f7752", "new recipe")
+	userID := "5d8f7300a7888700270f7752"
+	recipeName := "new recipe"
+	recipe, err := connection.Create(context.Background(), userID, recipeName)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipe)
 	assert.Equal(t, "new recipe", recipe.Name)
 
 	connection.Delete(context.Background(), recipe.ID)
+
+	u := user.New(connect)
+	u.RemoveRecipe(context.Background(), userID, recipe.ID)
 }
 
 func getEnvironmentVariable(key string) string {

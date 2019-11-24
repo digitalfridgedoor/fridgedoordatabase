@@ -37,7 +37,7 @@ func (conn *Connection) Create(ctx context.Context, userID string, name string) 
 
 	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
-	err = u.AddRecipeToUser(ctx, userID, insertedID)
+	err = u.AddRecipe(ctx, userID, insertedID)
 	if err != nil {
 		return nil, err
 	}

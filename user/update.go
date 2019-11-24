@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,11 +18,7 @@ func (conn *Connection) AddRecipe(ctx context.Context, userID string, recipeID p
 
 	user.Recipes = append(user.Recipes, recipeID)
 
-	o := options.Update()
-
-	singleResult := conn.collection().FindOneAndUpdate(ctx, user, o)
-
-	return singleResult.Err()
+	return conn.updateByID(ctx, user)
 }
 
 // RemoveRecipe removes recipe from users list
@@ -37,11 +34,18 @@ func (conn *Connection) RemoveRecipe(ctx context.Context, userID string, recipeI
 
 	user.Recipes = filter(user.Recipes, filterFn)
 
-	o := options.Update()
+	return conn.updateByID(ctx, user)
+}
 
-	_, err = conn.collection().UpdateOne(ctx, user, o)
+func (conn *Connection) updateByID(ctx context.Context, user *User) error {
 
-	return err
+	o := options.FindOneAndReplace()
+
+	filter := bson.D{primitive.E{Key: "_id", Value: user.ID}}
+
+	singleResult := conn.collection().FindOneAndReplace(ctx, filter, user, o)
+
+	return singleResult.Err()
 }
 
 func filter(ids []primitive.ObjectID, filterFn func(id *primitive.ObjectID) bool) []primitive.ObjectID {
