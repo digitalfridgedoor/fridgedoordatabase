@@ -17,7 +17,7 @@ type Connection interface {
 
 // Collection wraps a connected mongo collection
 type Collection struct {
-	collection *mongo.Collection
+	MongoCollection *mongo.Collection
 }
 
 type mongoConnection struct {
