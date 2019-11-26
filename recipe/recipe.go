@@ -6,16 +6,16 @@ import (
 	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
-// Connection can find and parse Recipes from mongodb
-type Connection struct {
-	db fridgedoordatabase.Connection
+// Collection is a recipe-wrapped collection
+type Collection struct {
+	collection *fridgedoordatabase.Collection
 }
 
-// New creates an instance of recipe.Connection
-func New(db fridgedoordatabase.Connection) *Connection {
-	return &Connection{db}
+// New creates an instance of recipe.Collection
+func New(db fridgedoordatabase.Connection) *Collection {
+	return &Collection{db.Collection("recipeapi", "recipes")}
 }
 
-func (conn *Connection) collection() *mongo.Collection {
-	return conn.db.Collection("recipeapi", "recipes")
+func (coll *Collection) mongoCollection() *mongo.Collection {
+	return coll.collection.MongoCollection
 }

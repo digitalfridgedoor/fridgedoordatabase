@@ -6,10 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/digitalfridgedoor/fridgedoordatabase"
-	"github.com/digitalfridgedoor/fridgedoordatabase/user"
 )
 
 func TestFindOne(t *testing.T) {
@@ -44,7 +45,7 @@ func TestCreate(t *testing.T) {
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
 	connection := New(connect)
-	userID := "5d8f7300a7888700270f7752"
+	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
 	recipe, err := connection.Create(context.Background(), userID, recipeName)
 
@@ -53,9 +54,6 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, "new recipe", recipe.Name)
 
 	connection.Delete(context.Background(), recipe.ID)
-
-	u := user.New(connect)
-	u.RemoveRecipe(context.Background(), userID, recipe.ID)
 }
 
 func getEnvironmentVariable(key string) string {

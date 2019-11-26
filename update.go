@@ -11,9 +11,14 @@ import (
 // UpdateByID finds and updates an object by ID
 func (coll *Collection) UpdateByID(ctx context.Context, id string, obj interface{}) error {
 
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
 	o := options.FindOneAndReplace()
 
-	filter := bson.D{primitive.E{Key: "_id", Value: id}}
+	filter := bson.D{primitive.E{Key: "_id", Value: objID}}
 
 	singleResult := coll.MongoCollection.FindOneAndReplace(ctx, filter, obj, o)
 

@@ -6,12 +6,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Collection is a recipe-wrapped collection
+// Collection is a user-wrapped collection
 type Collection struct {
 	collection *fridgedoordatabase.Collection
 }
 
-// New creates an instance of recipe.Collection
+// New creates an instance of user.Collection
 func New(db fridgedoordatabase.Connection) *Collection {
 	return &Collection{db.Collection("recipeapi", "users")}
 }

@@ -15,8 +15,8 @@ func TestFind(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
-	connection := Connection{connect}
-	ings, err := connection.Find(context.Background())
+	collection := New(connect)
+	ings, err := collection.Find(context.Background())
 
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(ings))
@@ -26,8 +26,8 @@ func TestFindOne(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
-	connection := Connection{connect}
-	ing, err := connection.FindOne(context.Background(), "5d8f744446106c8aee8cde37")
+	collection := New(connect)
+	ing, err := collection.FindOne(context.Background(), "5d8f744446106c8aee8cde37")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, ing)

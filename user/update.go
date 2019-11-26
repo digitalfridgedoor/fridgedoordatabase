@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -30,32 +31,7 @@ func (coll *Collection) RemoveRecipe(ctx context.Context, userID string, recipeI
 		return *id != recipeID
 	}
 
-	user.Recipes = filter(user.Recipes, filterFn)
+	user.Recipes = fridgedoordatabase.Filter(user.Recipes, filterFn)
 
 	return coll.collection.UpdateByID(ctx, userID, user)
-}
-
-func filter(ids []primitive.ObjectID, filterFn func(id *primitive.ObjectID) bool) []primitive.ObjectID {
-	filtered := []primitive.ObjectID{}
-
-	for id := range iterateObjectIDs(ids) {
-		if filterFn(id) {
-			filtered = append(filtered, *id)
-		}
-	}
-
-	return filtered
-}
-
-func iterateObjectIDs(ids []primitive.ObjectID) <-chan *primitive.ObjectID {
-	ch := make(chan *primitive.ObjectID)
-
-	go func() {
-		defer close(ch)
-		for _, id := range ids {
-			ch <- &id
-		}
-	}()
-
-	return ch
 }

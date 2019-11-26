@@ -7,25 +7,14 @@ import (
 	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // FindOne finds a recipe by ID
-func (conn *Connection) FindOne(ctx context.Context, id string) (*Recipe, error) {
+func (coll *Collection) FindOne(ctx context.Context, id string) (*Recipe, error) {
 
-	collection := conn.collection()
-
-	// Pass these options to the FindOne method
-	findOneOptions := options.FindOne()
-
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
-	singleResult := collection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
+	singleResult, err := coll.collection.FindByID(ctx, id)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
 	if err != nil {
@@ -36,8 +25,7 @@ func (conn *Connection) FindOne(ctx context.Context, id string) (*Recipe, error)
 }
 
 // List lists all the available recipe
-func (conn *Connection) List(ctx context.Context) ([]*Description, error) {
-	collection := conn.collection()
+func (coll *Collection) List(ctx context.Context) ([]*Description, error) {
 
 	duration3s, _ := time.ParseDuration("3s")
 	findctx, cancelFunc := context.WithTimeout(ctx, duration3s)
@@ -47,7 +35,7 @@ func (conn *Connection) List(ctx context.Context) ([]*Description, error) {
 	findOptions := options.Find()
 	findOptions.SetLimit(25)
 
-	cur, err := collection.Find(findctx, bson.D{{}}, findOptions)
+	cur, err := coll.mongoCollection().Find(findctx, bson.D{{}}, findOptions)
 	if err != nil {
 		return make([]*Description, 0), err
 	}
