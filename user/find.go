@@ -13,7 +13,10 @@ import (
 // FindOne finds a User by ID
 func (coll *Collection) FindOne(ctx context.Context, id string) (*User, error) {
 
-	singleResult := coll.FindByID(ctx, id)
+	singleResult, err := coll.collection.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &User{})
 	if err != nil {
@@ -24,14 +27,12 @@ func (coll *Collection) FindOne(ctx context.Context, id string) (*User, error) {
 }
 
 // GetByUsername tries to get User by username
-func (conn *Connection) GetByUsername(ctx context.Context, username string) (*User, error) {
-
-	collection := conn.collection()
+func (coll *Collection) GetByUsername(ctx context.Context, username string) (*User, error) {
 
 	// Pass these options to the FindOne method
 	findOneOptions := options.FindOne()
 
-	singleResult := collection.FindOne(ctx, bson.D{primitive.E{Key: "username", Value: username}}, findOneOptions)
+	singleResult := coll.mongoCollection().FindOne(ctx, bson.D{primitive.E{Key: "username", Value: username}}, findOneOptions)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &User{})
 	if err != nil {

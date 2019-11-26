@@ -9,19 +9,19 @@ import (
 // AddRecipe adds recipe to users list
 func (coll *Collection) AddRecipe(ctx context.Context, userID string, recipeID primitive.ObjectID) error {
 
-	user, err := coll.MongoCollection.FindOne(ctx, userID)
+	user, err := coll.FindOne(ctx, userID)
 	if err != nil {
 		return err
 	}
 
 	user.Recipes = append(user.Recipes, recipeID)
 
-	return coll.UpdateByID(ctx, user)
+	return coll.collection.UpdateByID(ctx, userID, user)
 }
 
 // RemoveRecipe removes recipe from users list
 func (coll *Collection) RemoveRecipe(ctx context.Context, userID string, recipeID primitive.ObjectID) error {
-	user, err := coll.MongoCollection.FindOne(ctx, userID)
+	user, err := coll.FindOne(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (coll *Collection) RemoveRecipe(ctx context.Context, userID string, recipeI
 
 	user.Recipes = filter(user.Recipes, filterFn)
 
-	return coll.UpdateByID(ctx, user)
+	return coll.collection.UpdateByID(ctx, userID, user)
 }
 
 func filter(ids []primitive.ObjectID, filterFn func(id *primitive.ObjectID) bool) []primitive.ObjectID {
