@@ -2,20 +2,14 @@ package user
 
 import (
 	"github.com/digitalfridgedoor/fridgedoordatabase"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Connection can find and parse Users from mongodb
-type Connection struct {
-	db fridgedoordatabase.Connection
+// Collection is a recipe-wrapped collection
+type Collection struct {
+	collection *fridgedoordatabase.Collection
 }
 
-// New creates an instance of recipe.Connection
-func New(db fridgedoordatabase.Connection) *Connection {
-	return &Connection{db}
-}
-
-func (conn *Connection) collection() *mongo.Collection {
-	return conn.db.Collection("recipeapi", "users")
+// New creates an instance of recipe.Collection
+func New(db fridgedoordatabase.Connection) *Collection {
+	return &Collection{db.Collection("recipeapi", "users")}
 }

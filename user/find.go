@@ -11,9 +11,9 @@ import (
 )
 
 // FindOne finds a User by ID
-func (conn *Connection) FindOne(ctx context.Context, id string) (*User, error) {
+func (coll *Collection) FindOne(ctx context.Context, id string) (*User, error) {
 
-	collection := conn.collection()
+	singleResult := coll.FindByID(ctx, id)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &User{})
 	if err != nil {
