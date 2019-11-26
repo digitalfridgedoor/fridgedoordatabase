@@ -20,7 +20,7 @@ func (coll *Collection) FindByID(ctx context.Context, id string) (*mongo.SingleR
 		return nil, err
 	}
 
-	singleResult := coll.Collection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
+	singleResult := coll.MongoCollection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
 
 	return singleResult, nil
 }

@@ -15,7 +15,7 @@ func (coll *Collection) UpdateByID(ctx context.Context, id string, obj interface
 
 	filter := bson.D{primitive.E{Key: "_id", Value: id}}
 
-	singleResult := coll.Collection.FindOneAndReplace(ctx, filter, obj, o)
+	singleResult := coll.MongoCollection.FindOneAndReplace(ctx, filter, obj, o)
 
 	return singleResult.Err()
 }
