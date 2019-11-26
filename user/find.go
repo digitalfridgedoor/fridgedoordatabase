@@ -15,15 +15,6 @@ func (conn *Connection) FindOne(ctx context.Context, id string) (*User, error) {
 
 	collection := conn.collection()
 
-	findOneOptions := options.FindOne()
-
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
-	singleResult := collection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
-
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &User{})
 	if err != nil {
 		return nil, err

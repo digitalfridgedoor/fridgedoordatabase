@@ -5,8 +5,25 @@ import (
 	"log"
 	"reflect"
 
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// FindByID finds a single result using the collection ID
+func (coll *Collection) FindByID(ctx context.Context, id string) (*mongo.SingleResult, error) {
+	findOneOptions := options.FindOne()
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	singleResult := coll.collection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: objID}}, findOneOptions)
+
+	return singleResult, nil
+}
 
 // ParseSingleResult parses result returned by FindOne
 func ParseSingleResult(singleResult *mongo.SingleResult, obj interface{}) (interface{}, error) {

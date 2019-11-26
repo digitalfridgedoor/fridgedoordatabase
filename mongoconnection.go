@@ -11,8 +11,13 @@ import (
 
 // Connection represents a connection to a database
 type Connection interface {
-	Collection(database string, collection string) *mongo.Collection
+	Collection(database string, collection string) *Collection
 	Disconnect() error
+}
+
+// Collection wraps a connected mongo collection
+type Collection struct {
+	collection *mongo.Collection
 }
 
 type mongoConnection struct {
@@ -43,8 +48,8 @@ func Connect(ctx context.Context, connectionString string) Connection {
 	return &mongoConnection{client}
 }
 
-func (db *mongoConnection) Collection(database string, collection string) *mongo.Collection {
-	return db.client.Database(database).Collection(collection)
+func (db *mongoConnection) Collection(database string, collection string) *Collection {
+	return &Collection{db.client.Database(database).Collection(collection)}
 }
 
 func (db *mongoConnection) Disconnect() error {
