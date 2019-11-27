@@ -6,7 +6,7 @@ import (
 
 // User represents a recipe
 type User struct {
-	ID       primitive.ObjectID   `son:"id" bson:"_id,omitempty"`
+	ID       primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
 	Username string               `json:"username"`
 	Recipes  []primitive.ObjectID `json:"recipes"`
 }
