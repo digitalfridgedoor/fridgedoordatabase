@@ -56,24 +56,11 @@ func (r *Recipe) containsIngredient(ingredientID string) bool {
 func filterIngredients(ings []Ingredient, filterFn func(ing *Ingredient) bool) []Ingredient {
 	filtered := []Ingredient{}
 
-	for ing := range iterate(ings) {
-		if filterFn(ing) {
-			filtered = append(filtered, *ing)
+	for _, ing := range ings {
+		if filterFn(&ing) {
+			filtered = append(filtered, ing)
 		}
 	}
 
 	return filtered
-}
-
-func iterate(ings []Ingredient) <-chan *Ingredient {
-	ch := make(chan *Ingredient)
-
-	go func() {
-		defer close(ch)
-		for _, id := range ings {
-			ch <- &id
-		}
-	}()
-
-	return ch
 }
