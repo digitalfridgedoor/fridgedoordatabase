@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/digitalfridgedoor/fridgedoordatabase"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,6 +24,24 @@ func (coll *Collection) FindOne(ctx context.Context, id string) (*Recipe, error)
 	}
 
 	return ing.(*Recipe), err
+}
+
+// FindByIds finds recipe by ID
+func (coll *Collection) FindByIds(ctx context.Context, ids []*primitive.ObjectID) ([]*Description, error) {
+
+	// Pass these options to the Find method
+	findOptions := options.Find()
+	findOptions.SetLimit(25)
+
+	_in := bson.M{"$in": ids}
+	idin := bson.M{"_id": _in}
+
+	cur, err := coll.mongoCollection().Find(context.Background(), idin, findOptions)
+	if err != nil {
+		return make([]*Description, 0), err
+	}
+
+	return parseRecipe(ctx, cur)
 }
 
 // List lists all the available recipe
