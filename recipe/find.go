@@ -27,7 +27,7 @@ func (coll *Collection) FindOne(ctx context.Context, id string) (*Recipe, error)
 }
 
 // FindByIds finds recipe by ID
-func (coll *Collection) FindByIds(ctx context.Context, ids []*primitive.ObjectID) ([]*Description, error) {
+func (coll *Collection) FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, error) {
 
 	// Pass these options to the Find method
 	findOptions := options.Find()
