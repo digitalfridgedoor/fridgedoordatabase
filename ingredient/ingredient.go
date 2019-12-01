@@ -26,14 +26,17 @@ func (coll *Collection) mongoCollection() *mongo.Collection {
 	return coll.collection.MongoCollection
 }
 
-// Find does not find one
-func (coll *Collection) Find(ctx context.Context) ([]*Ingredient, error) {
+// FindByName finds ingredients starting with the given letter
+func (coll *Collection) FindByName(ctx context.Context, startsWith string) ([]*Ingredient, error) {
 
 	// Pass these options to the Find method
 	findOptions := options.Find()
-	findOptions.SetLimit(2)
+	findOptions.SetLimit(20)
 
-	cur, err := coll.mongoCollection().Find(ctx, bson.D{{}}, findOptions)
+	regex := bson.M{"$regex": primitive.Regex{Pattern: "^" + startsWith, Options: "i"}}
+	startsWithBson := bson.M{"name": regex}
+
+	cur, err := coll.mongoCollection().Find(ctx, startsWithBson, findOptions)
 	if err != nil {
 		return make([]*Ingredient, 0), err
 	}

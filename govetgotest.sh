@@ -1,7 +1,7 @@
 go vet ./ingredient
 go vet ./recipe
-go vet ./user
+go vet ./userview
 
 go test ./ingredient
 go test ./recipe
-go test ./user
+go test ./userview

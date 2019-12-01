@@ -16,10 +16,11 @@ func TestFind(t *testing.T) {
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
 
 	collection := New(connect)
-	ings, err := collection.Find(context.Background())
+	capital, err := collection.FindByName(context.Background(), "C")
+	lowercase, err := collection.FindByName(context.Background(), "c")
 
 	assert.Nil(t, err)
-	assert.Equal(t, 2, len(ings))
+	assert.Equal(t, len(capital), len(lowercase))
 }
 
 func TestFindOne(t *testing.T) {
