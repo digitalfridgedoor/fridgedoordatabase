@@ -8,12 +8,19 @@ import (
 
 // Recipe represents a recipe
 type Recipe struct {
-	ID          primitive.ObjectID `son:"id" bson:"_id,omitempty"`
-	Name        string             `json:"name"`
-	AddedOn     time.Time          `json:"addedOn"`
-	AddedBy     primitive.ObjectID `json:"addedBy"`
-	Ingredients []Ingredient       `json:"ingredients"`
-	Recipes     []SubRecipe        `json:"recipes"`
+	ID      primitive.ObjectID `son:"id" bson:"_id,omitempty"`
+	Name    string             `json:"name"`
+	AddedOn time.Time          `json:"addedOn"`
+	AddedBy primitive.ObjectID `json:"addedBy"`
+	Method  []MethodStep       `json:"method"`
+	Recipes []SubRecipe        `json:"recipes"`
+}
+
+// MethodStep is an instructin with a collection of ingredients
+type MethodStep struct {
+	Action      string       `json:"action"`
+	Description string       `json:"description"`
+	Ingredients []Ingredient `json:"ingredients"`
 }
 
 // Ingredient is the ingredient linked to each recipe
