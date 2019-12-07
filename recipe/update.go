@@ -84,6 +84,7 @@ func (coll *Collection) RemoveIngredient(ctx context.Context, recipeID string, s
 	}
 
 	methodStep.Ingredients = filterIngredients(methodStep.Ingredients, filterFn)
+	recipe.Method[stepIdx] = *methodStep
 
 	return coll.collection.UpdateByID(ctx, recipeID, recipe)
 }
