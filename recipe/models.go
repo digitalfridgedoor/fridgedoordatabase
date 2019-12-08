@@ -16,10 +16,11 @@ type Recipe struct {
 	Recipes []SubRecipe        `json:"recipes"`
 }
 
-// MethodStep is an instructin with a collection of ingredients
+// MethodStep is an instruction with a collection of ingredients
 type MethodStep struct {
 	Action      string       `json:"action"`
 	Description string       `json:"description"`
+	Time        string       `json:"time"`
 	Ingredients []Ingredient `json:"ingredients"`
 }
 

@@ -169,6 +169,9 @@ func updateMethodStep(methodStep *MethodStep, updates map[string]string) *Method
 	if update, ok := updates["description"]; ok {
 		methodStep.Description = update
 	}
+	if update, ok := updates["time"]; ok {
+		methodStep.Time = update
+	}
 
 	return methodStep
 }
