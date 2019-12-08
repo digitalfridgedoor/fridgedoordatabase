@@ -140,8 +140,8 @@ func updateByID(ings []Ingredient, ingredientID string, updates map[string]strin
 			if update, ok := updates["preperation"]; ok {
 				ing.Preperation = update
 			}
-			updated[index] = ing
 		}
+		updated[index] = ing
 	}
 
 	return updated
