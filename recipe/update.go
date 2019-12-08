@@ -24,6 +24,20 @@ func (coll *Collection) AddMethodStep(ctx context.Context, recipeID string, acti
 	return coll.collection.UpdateByID(ctx, recipeID, recipe)
 }
 
+// UpdateMethodStepByIndex updates method step at index
+func (coll *Collection) UpdateMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int, updates map[string]string) error {
+
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	if err != nil {
+		fmt.Printf("Error retreiving method step, %v.\n", err)
+		return err
+	}
+
+	recipe.Method[stepIdx] = *updateMethodStep(methodStep, updates)
+
+	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+}
+
 // RemoveMethodStepByIndex removes method by index
 func (coll *Collection) RemoveMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int) error {
 
@@ -145,6 +159,18 @@ func updateByID(ings []Ingredient, ingredientID string, updates map[string]strin
 	}
 
 	return updated
+}
+
+func updateMethodStep(methodStep *MethodStep, updates map[string]string) *MethodStep {
+
+	if update, ok := updates["action"]; ok {
+		methodStep.Action = update
+	}
+	if update, ok := updates["description"]; ok {
+		methodStep.Description = update
+	}
+
+	return methodStep
 }
 
 func (coll *Collection) getMethodStepByID(ctx context.Context, recipeID string, stepIdx int) (*Recipe, *MethodStep, error) {

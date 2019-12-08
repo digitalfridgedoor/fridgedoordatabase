@@ -61,3 +61,21 @@ func TestUpdate(t *testing.T) {
 
 	connection.Delete(ctx, recipe.ID)
 }
+
+func TestRunCode(t *testing.T) {
+	connectionstring := getEnvironmentVariable("connectionstring")
+	ctx := context.Background()
+	connection := fridgedoordatabase.Connect(ctx, connectionstring)
+	recipeID := "5debadc725fbf484aed19ce4"
+
+	collection := New(connection)
+	recipe, err := collection.FindOne(ctx, recipeID)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, recipe)
+	assert.Equal(t, "Fajitas", recipe.Name)
+
+	updates := make(map[string]string)
+	updates["preperation"] = "test"
+	collection.UpdateIngredient(ctx, recipeID, 0, "5d8f739ba7888700270f775a", updates)
+}
