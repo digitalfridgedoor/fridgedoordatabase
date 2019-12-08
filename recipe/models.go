@@ -27,6 +27,7 @@ type MethodStep struct {
 type Ingredient struct {
 	Name         string `json:"name"`
 	Amount       string `json:"amount"`
+	Preperation  string `json:"preperation"`
 	IngredientID string `json:"ingredientId"`
 }
 

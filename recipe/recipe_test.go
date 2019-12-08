@@ -56,7 +56,7 @@ func TestCreate(t *testing.T) {
 	connection.Delete(context.Background(), recipe.ID)
 }
 
-func TestUPdate(t *testing.T) {
+func TestAddAndRemove(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	ctx := context.Background()
 	connect := fridgedoordatabase.Connect(ctx, connectionstring)

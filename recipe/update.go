@@ -70,6 +70,21 @@ func (coll *Collection) AddIngredient(ctx context.Context, recipeID string, step
 	return coll.collection.UpdateByID(ctx, recipeID, recipe)
 }
 
+// UpdateIngredient removes ingredient from recipe
+func (coll *Collection) UpdateIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string, updates map[string]string) error {
+
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	if err != nil {
+		fmt.Printf("Error retreiving method step, %v.\n", err)
+		return err
+	}
+
+	methodStep.Ingredients = updateByID(methodStep.Ingredients, ingredientID, updates)
+	recipe.Method[stepIdx] = *methodStep
+
+	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+}
+
 // RemoveIngredient removes ingredient from recipe
 func (coll *Collection) RemoveIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string) error {
 
@@ -109,6 +124,27 @@ func filterIngredients(ings []Ingredient, filterFn func(ing *Ingredient) bool) [
 	}
 
 	return filtered
+}
+
+func updateByID(ings []Ingredient, ingredientID string, updates map[string]string) []Ingredient {
+	updated := make([]Ingredient, len(ings))
+
+	for index, ing := range ings {
+		if ing.IngredientID == ingredientID {
+			if update, ok := updates["name"]; ok {
+				ing.Name = update
+			}
+			if update, ok := updates["amount"]; ok {
+				ing.Amount = update
+			}
+			if update, ok := updates["preperation"]; ok {
+				ing.Preperation = update
+			}
+			updated[index] = ing
+		}
+	}
+
+	return updated
 }
 
 func (coll *Collection) getMethodStepByID(ctx context.Context, recipeID string, stepIdx int) (*Recipe, *MethodStep, error) {
