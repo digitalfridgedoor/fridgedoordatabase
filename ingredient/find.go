@@ -17,7 +17,7 @@ func (coll *Collection) FindByName(ctx context.Context, startsWith string) ([]*I
 	findOptions := options.Find()
 	findOptions.SetLimit(20)
 
-	regex := bson.M{"$regex": primitive.Regex{Pattern: "\b" + startsWith, Options: "i"}}
+	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
 	startsWithBson := bson.M{"name": regex}
 
 	cur, err := coll.mongoCollection().Find(ctx, startsWithBson, findOptions)
