@@ -9,7 +9,7 @@ import (
 )
 
 // Create creates a new ingredient with given name
-func (coll *Collection) Create(ctx context.Context, userID primitive.ObjectID, name string) (*Ingredient, error) {
+func (coll *Collection) Create(ctx context.Context, name string) (*Ingredient, error) {
 
 	insertOneOptions := options.InsertOne()
 
