@@ -22,6 +22,18 @@ func TestFindByUsername(t *testing.T) {
 	assert.Nil(t, r)
 }
 
+func TestFindLinked(t *testing.T) {
+	connectionstring := getEnvironmentVariable("connectionstring")
+	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+
+	connection := New(connect)
+	r, err := connection.GetLinkedUserViews(context.Background())
+
+	assert.Nil(t, err)
+	assert.NotNil(t, r)
+	assert.Greater(t, len(r), 0)
+}
+
 func getEnvironmentVariable(key string) string {
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
