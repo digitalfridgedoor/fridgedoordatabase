@@ -37,6 +37,8 @@ func Connect(ctx context.Context, connectionString string) bool {
 
 	fmt.Println("Connected to MongoDB!")
 
+	mongoClient = client
+
 	return true
 }
 
