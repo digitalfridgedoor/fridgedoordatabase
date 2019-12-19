@@ -9,23 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Connection represents a connection to a database
-type Connection interface {
-	Collection(database string, collection string) *Collection
-	Disconnect() error
-}
+var mongoClient *mongo.Client
 
 // Collection wraps a connected mongo collection
 type Collection struct {
 	MongoCollection *mongo.Collection
 }
 
-type mongoConnection struct {
-	client *mongo.Client
-}
-
 // Connect connects to mongo
-func Connect(ctx context.Context, connectionString string) Connection {
+func Connect(ctx context.Context, connectionString string) bool {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(connectionString)
 
@@ -45,15 +37,24 @@ func Connect(ctx context.Context, connectionString string) Connection {
 
 	fmt.Println("Connected to MongoDB!")
 
-	return &mongoConnection{client}
+	return true
 }
 
-func (db *mongoConnection) Collection(database string, collection string) *Collection {
-	return &Collection{db.client.Database(database).Collection(collection)}
+// CreateCollection gets a coll
+func CreateCollection(database string, collection string) (bool, *Collection) {
+	if mongoClient == nil {
+		return false, nil
+	}
+	return true, &Collection{mongoClient.Database(database).Collection(collection)}
 }
 
-func (db *mongoConnection) Disconnect() error {
-	err := db.client.Disconnect(context.TODO())
+// Disconnect removes the current connection to mongo
+func Disconnect() error {
+	if mongoClient == nil {
+		return nil
+	}
+	err := mongoClient.Disconnect(context.TODO())
+	mongoClient = nil
 
 	return err
 }
