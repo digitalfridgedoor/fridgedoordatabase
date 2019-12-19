@@ -18,6 +18,15 @@ type Collection struct {
 
 // Connect connects to mongo
 func Connect(ctx context.Context, connectionString string) bool {
+	if mongoClient != nil {
+		// assume connected
+		return true
+	}
+
+	return connect(ctx, connectionString)
+}
+
+func connect(ctx context.Context, connectionString string) bool {
 	// Set client options
 	clientOptions := options.Client().ApplyURI(connectionString)
 
@@ -42,7 +51,7 @@ func Connect(ctx context.Context, connectionString string) bool {
 	return true
 }
 
-// CreateCollection gets a coll
+// CreateCollection gets a wrapped reference to a mongo collection
 func CreateCollection(database string, collection string) (bool, *Collection) {
 	if mongoClient == nil {
 		return false, nil
