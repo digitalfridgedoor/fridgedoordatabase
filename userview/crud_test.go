@@ -19,11 +19,11 @@ func TestUpdate(t *testing.T) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), duration3s)
 	defer cancelFunc()
 	connect := fridgedoordatabase.Connect(ctx, connectionstring)
+	assert.True(t, connect)
 
-	collection := New(connect)
 	username := "TestUser"
 
-	view, err := collection.Create(context.Background(), username)
+	view, err := Create(context.Background(), username)
 
 	assert.Nil(t, err)
 
@@ -33,10 +33,10 @@ func TestUpdate(t *testing.T) {
 	viewID := view.ID
 	recipeCollectionName := "MyNewCollection"
 	recipeID, _ := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
-	err = collection.AddRecipe(context.Background(), view.ID.Hex(), recipeCollectionName, recipeID)
+	err = AddRecipe(context.Background(), view.ID.Hex(), recipeCollectionName, recipeID)
 	assert.Nil(t, err)
 
-	view, err = collection.GetByUsername(context.Background(), username)
+	view, err = GetByUsername(context.Background(), username)
 	assert.Nil(t, err)
 	assert.Equal(t, viewID, view.ID)
 
@@ -48,13 +48,13 @@ func TestUpdate(t *testing.T) {
 	recipe := recipeCollection.Recipes[0]
 	assert.Equal(t, recipeID, recipe)
 
-	err = collection.RemoveRecipe(context.Background(), viewID.Hex(), recipeCollectionName, recipeID)
+	err = RemoveRecipe(context.Background(), viewID.Hex(), recipeCollectionName, recipeID)
 	assert.Nil(t, err)
 
-	err = collection.Delete(ctx, username)
+	err = Delete(ctx, username)
 	assert.Nil(t, err)
 
-	_, err = collection.GetByUsername(context.Background(), username)
+	_, err = GetByUsername(context.Background(), username)
 	assert.NotNil(t, err)
 }
 
@@ -65,15 +65,18 @@ func TestUsernameCanOnlyBeUsedOnce(t *testing.T) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), duration3s)
 	defer cancelFunc()
 	connect := fridgedoordatabase.Connect(ctx, connectionstring)
+	assert.True(t, connect)
 
-	collection := New(connect)
 	username := "TestUser"
 
-	view, err := collection.Create(context.Background(), username)
+	view, err := Create(context.Background(), username)
 	assert.NotNil(t, view)
 	assert.Nil(t, err)
 
-	view, err = collection.Create(context.Background(), username)
+	view, err = Create(context.Background(), username)
 	assert.NotNil(t, err)
 	assert.Equal(t, errUserExists, err)
+
+	err = Delete(ctx, username)
+	assert.Nil(t, err)
 }

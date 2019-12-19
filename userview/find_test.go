@@ -14,9 +14,9 @@ import (
 func TestFindByUsername(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connect)
 
-	connection := New(connect)
-	r, err := connection.GetByUsername(context.Background(), "Maisie")
+	r, err := GetByUsername(context.Background(), "Maisie")
 
 	assert.NotNil(t, err)
 	assert.Nil(t, r)
@@ -25,9 +25,9 @@ func TestFindByUsername(t *testing.T) {
 func TestFindLinked(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connect)
 
-	connection := New(connect)
-	r, err := connection.GetLinkedUserViews(context.Background())
+	r, err := GetLinkedUserViews(context.Background())
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)

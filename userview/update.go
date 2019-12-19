@@ -9,9 +9,14 @@ import (
 )
 
 // AddRecipe adds recipe to users list
-func (coll *Collection) AddRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
+func AddRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
 
-	view, err := coll.FindOne(ctx, viewID)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	view, err := FindOne(ctx, viewID)
 	if err != nil {
 		return err
 	}
@@ -22,12 +27,12 @@ func (coll *Collection) AddRecipe(ctx context.Context, viewID string, collection
 
 	view.Collections[collectionName].addRecipe(recipeID)
 
-	return coll.collection.UpdateByID(ctx, viewID, view)
+	return collection.UpdateByID(ctx, viewID, view)
 }
 
 // RemoveRecipe removes recipe from users list
-func (coll *Collection) RemoveRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
-	view, err := coll.FindOne(ctx, viewID)
+func RemoveRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
+	view, err := FindOne(ctx, viewID)
 	if err != nil {
 		return err
 	}
@@ -40,7 +45,12 @@ func (coll *Collection) RemoveRecipe(ctx context.Context, viewID string, collect
 		viewCollection.Recipes = fridgedoordatabase.Filter(viewCollection.Recipes, filterFn)
 	}
 
-	return coll.collection.UpdateByID(ctx, viewID, view)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	return collection.UpdateByID(ctx, viewID, view)
 }
 
 func (r *RecipeCollection) addRecipe(recipeID primitive.ObjectID) {

@@ -12,8 +12,14 @@ import (
 var errUserExists = errors.New("User exists")
 
 // Create creates a new userview for a user
-func (coll *Collection) Create(ctx context.Context, username string) (*View, error) {
-	_, err := coll.GetByUsername(ctx, username)
+func Create(ctx context.Context, username string) (*View, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	_, err := GetByUsername(ctx, username)
 	if err == nil {
 		// found user with that username
 		return nil, errUserExists
@@ -27,28 +33,34 @@ func (coll *Collection) Create(ctx context.Context, username string) (*View, err
 		Collections: collections,
 	}
 
-	insertOneResult, err := coll.mongoCollection().InsertOne(ctx, view, insertOneOptions)
+	insertOneResult, err := mongoCollection.InsertOne(ctx, view, insertOneOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
-	return coll.FindOne(ctx, insertedID.Hex())
+	return FindOne(ctx, insertedID.Hex())
 }
 
 // Delete removes a userview for a user
-func (coll *Collection) Delete(ctx context.Context, username string) error {
+func Delete(ctx context.Context, username string) error {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return errNotConnected
+	}
+
 	deleteOptions := options.Delete()
 
-	view, err := coll.GetByUsername(ctx, username)
+	view, err := GetByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
 
 	viewID := view.ID
 
-	_, err = coll.mongoCollection().DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: viewID}}, deleteOptions)
+	_, err = mongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: viewID}}, deleteOptions)
 	if err != nil {
 		return err
 	}

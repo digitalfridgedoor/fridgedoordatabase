@@ -13,9 +13,14 @@ import (
 )
 
 // FindOne finds a User by ID
-func (coll *Collection) FindOne(ctx context.Context, viewID string) (*View, error) {
+func FindOne(ctx context.Context, viewID string) (*View, error) {
 
-	singleResult, err := coll.collection.FindByID(ctx, viewID)
+	connected, collection := collection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	singleResult, err := collection.FindByID(ctx, viewID)
 	if err != nil {
 		return nil, err
 	}
@@ -29,12 +34,17 @@ func (coll *Collection) FindOne(ctx context.Context, viewID string) (*View, erro
 }
 
 // GetByUsername tries to get User by username
-func (coll *Collection) GetByUsername(ctx context.Context, username string) (*View, error) {
+func GetByUsername(ctx context.Context, username string) (*View, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	// Pass these options to the FindOne method
 	findOneOptions := options.FindOne()
 
-	singleResult := coll.mongoCollection().FindOne(ctx, bson.D{primitive.E{Key: "username", Value: username}}, findOneOptions)
+	singleResult := mongoCollection.FindOne(ctx, bson.D{primitive.E{Key: "username", Value: username}}, findOneOptions)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &View{})
 	if err != nil {
@@ -45,7 +55,12 @@ func (coll *Collection) GetByUsername(ctx context.Context, username string) (*Vi
 }
 
 // GetLinkedUserViews returns all user views for now
-func (coll *Collection) GetLinkedUserViews(ctx context.Context) ([]*View, error) {
+func GetLinkedUserViews(ctx context.Context) ([]*View, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	duration3s, _ := time.ParseDuration("3s")
 	findctx, cancelFunc := context.WithTimeout(ctx, duration3s)
@@ -55,7 +70,7 @@ func (coll *Collection) GetLinkedUserViews(ctx context.Context) ([]*View, error)
 	findOptions := options.Find()
 	findOptions.SetLimit(25)
 
-	cur, err := coll.mongoCollection().Find(findctx, bson.D{{}}, findOptions)
+	cur, err := mongoCollection.Find(findctx, bson.D{{}}, findOptions)
 	if err != nil {
 		return nil, err
 	}
