@@ -15,10 +15,10 @@ import (
 
 func TestFindOne(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
-	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connected)
 
-	connection := New(connect)
-	r, err := connection.FindOne(context.Background(), "5dbc80036eb36874255e7fcd")
+	r, err := FindOne(context.Background(), "5dbc80036eb36874255e7fcd")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
@@ -30,10 +30,10 @@ func TestFindOne(t *testing.T) {
 
 func TestList(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
-	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connected)
 
-	connection := New(connect)
-	recipes, err := connection.List(context.Background())
+	recipes, err := List(context.Background())
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipes)
@@ -42,30 +42,30 @@ func TestList(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
-	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connected)
 
-	connection := New(connect)
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
-	recipe, err := connection.Create(context.Background(), userID, recipeName)
+	recipe, err := Create(context.Background(), userID, recipeName)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipe)
 	assert.Equal(t, "new recipe", recipe.Name)
 
-	connection.Delete(context.Background(), recipe.ID)
+	Delete(context.Background(), recipe.ID)
 }
 
 func TestAddAndRemove(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	ctx := context.Background()
-	connect := fridgedoordatabase.Connect(ctx, connectionstring)
 	ingredientID := "5d8f744446106c8aee8cde37"
+	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connected)
 
-	connection := New(connect)
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
-	recipe, err := connection.Create(ctx, userID, recipeName)
+	recipe, err := Create(ctx, userID, recipeName)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipe)
@@ -73,25 +73,25 @@ func TestAddAndRemove(t *testing.T) {
 
 	recipeIDString := recipe.ID.Hex()
 
-	err = connection.AddMethodStep(ctx, recipeIDString, "Add to pan")
+	err = AddMethodStep(ctx, recipeIDString, "Add to pan")
 	assert.Nil(t, err)
 
-	err = connection.AddIngredient(ctx, recipeIDString, 0, ingredientID, "Test ing")
+	err = AddIngredient(ctx, recipeIDString, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
-	latestRecipe, err := connection.FindOne(ctx, recipeIDString)
+	latestRecipe, err := FindOne(ctx, recipeIDString)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]
 	assert.Equal(t, 1, len(method.Ingredients))
 
-	err = connection.RemoveIngredient(ctx, recipeIDString, 0, ingredientID)
+	err = RemoveIngredient(ctx, recipeIDString, 0, ingredientID)
 	assert.Nil(t, err)
 
-	err = connection.RemoveMethodStepByIndex(ctx, recipeIDString, 0)
+	err = RemoveMethodStepByIndex(ctx, recipeIDString, 0)
 	assert.Nil(t, err)
 
-	connection.Delete(ctx, recipe.ID)
+	Delete(ctx, recipe.ID)
 }
 
 func getEnvironmentVariable(key string) string {

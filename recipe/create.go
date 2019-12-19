@@ -10,7 +10,12 @@ import (
 )
 
 // Create creates a new recipe with given name
-func (coll *Collection) Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recipe, error) {
+func Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recipe, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	insertOneOptions := options.InsertOne()
 
@@ -20,22 +25,27 @@ func (coll *Collection) Create(ctx context.Context, userID primitive.ObjectID, n
 		AddedBy: userID,
 	}
 
-	insertOneResult, err := coll.mongoCollection().InsertOne(ctx, recipe, insertOneOptions)
+	insertOneResult, err := mongoCollection.InsertOne(ctx, recipe, insertOneOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
-	return coll.FindOne(ctx, insertedID.Hex())
+	return FindOne(ctx, insertedID.Hex())
 }
 
 // Delete removes a recipe
-func (coll *Collection) Delete(ctx context.Context, recipeID primitive.ObjectID) error {
+func Delete(ctx context.Context, recipeID primitive.ObjectID) error {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return errNotConnected
+	}
 
 	deleteOptions := options.Delete()
 
-	_, err := coll.mongoCollection().DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: recipeID}}, deleteOptions)
+	_, err := mongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: recipeID}}, deleteOptions)
 	if err != nil {
 		return err
 	}

@@ -9,11 +9,16 @@ import (
 )
 
 // DeleteByID deletes an ingredient
-func (coll *Collection) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return errNotConnected
+	}
 
 	deleteOptions := options.Delete()
 
-	_, err := coll.mongoCollection().DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: id}}, deleteOptions)
+	_, err := mongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: id}}, deleteOptions)
 	if err != nil {
 		return err
 	}

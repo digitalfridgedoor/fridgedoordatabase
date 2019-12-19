@@ -8,9 +8,14 @@ import (
 )
 
 // AddMethodStep adds new method step to a recipe
-func (coll *Collection) AddMethodStep(ctx context.Context, recipeID string, action string) error {
+func AddMethodStep(ctx context.Context, recipeID string, action string) error {
 
-	recipe, err := coll.FindOne(ctx, recipeID)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
@@ -21,13 +26,18 @@ func (coll *Collection) AddMethodStep(ctx context.Context, recipeID string, acti
 
 	recipe.Method = append(recipe.Method, methodStep)
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 // UpdateMethodStepByIndex updates method step at index
-func (coll *Collection) UpdateMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int, updates map[string]string) error {
+func UpdateMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int, updates map[string]string) error {
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
@@ -35,17 +45,22 @@ func (coll *Collection) UpdateMethodStepByIndex(ctx context.Context, recipeID st
 
 	recipe.Method[stepIdx] = *updateMethodStep(methodStep, updates)
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 // RemoveMethodStepByIndex removes method by index
-func (coll *Collection) RemoveMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int) error {
+func RemoveMethodStepByIndex(ctx context.Context, recipeID string, stepIdx int) error {
+
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
 
 	if stepIdx < 0 {
 		return errors.New("Invalid index")
 	}
 
-	recipe, err := coll.FindOne(ctx, recipeID)
+	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
@@ -57,13 +72,18 @@ func (coll *Collection) RemoveMethodStepByIndex(ctx context.Context, recipeID st
 	copy(recipe.Method[stepIdx:], recipe.Method[stepIdx+1:]) // Shift a[i+1:] left one index.
 	recipe.Method = recipe.Method[:len(recipe.Method)-1]     // Truncate slice.
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 // AddIngredient adds an ingredient to a recipe
-func (coll *Collection) AddIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string, ingredient string) error {
+func AddIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string, ingredient string) error {
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
@@ -81,13 +101,18 @@ func (coll *Collection) AddIngredient(ctx context.Context, recipeID string, step
 	methodStep.Ingredients = append(methodStep.Ingredients, ing)
 	recipe.Method[stepIdx] = *methodStep
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 // UpdateIngredient removes ingredient from recipe
-func (coll *Collection) UpdateIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string, updates map[string]string) error {
+func UpdateIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string, updates map[string]string) error {
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
@@ -96,13 +121,18 @@ func (coll *Collection) UpdateIngredient(ctx context.Context, recipeID string, s
 	methodStep.Ingredients = updateByID(methodStep.Ingredients, ingredientID, updates)
 	recipe.Method[stepIdx] = *methodStep
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 // RemoveIngredient removes ingredient from recipe
-func (coll *Collection) RemoveIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string) error {
+func RemoveIngredient(ctx context.Context, recipeID string, stepIdx int, ingredientID string) error {
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
+
+	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
@@ -115,7 +145,7 @@ func (coll *Collection) RemoveIngredient(ctx context.Context, recipeID string, s
 	methodStep.Ingredients = filterIngredients(methodStep.Ingredients, filterFn)
 	recipe.Method[stepIdx] = *methodStep
 
-	return coll.collection.UpdateByID(ctx, recipeID, recipe)
+	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
 func (r *MethodStep) containsIngredient(ingredientID string) bool {
@@ -176,13 +206,13 @@ func updateMethodStep(methodStep *MethodStep, updates map[string]string) *Method
 	return methodStep
 }
 
-func (coll *Collection) getMethodStepByID(ctx context.Context, recipeID string, stepIdx int) (*Recipe, *MethodStep, error) {
+func getMethodStepByID(ctx context.Context, recipeID string, stepIdx int) (*Recipe, *MethodStep, error) {
 
 	if stepIdx < 0 {
 		return nil, nil, errors.New("Invalid index, " + strconv.Itoa(stepIdx))
 	}
 
-	recipe, err := coll.FindOne(ctx, recipeID)
+	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return nil, nil, err
 	}

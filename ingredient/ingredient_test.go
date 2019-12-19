@@ -14,10 +14,10 @@ import (
 func TestFind(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connect)
 
-	collection := New(connect)
-	capital, err := collection.FindByName(context.Background(), "C")
-	lowercase, err := collection.FindByName(context.Background(), "c")
+	capital, err := FindByName(context.Background(), "C")
+	lowercase, err := FindByName(context.Background(), "c")
 
 	assert.Nil(t, err)
 	assert.Equal(t, len(capital), len(lowercase))
@@ -26,9 +26,9 @@ func TestFind(t *testing.T) {
 func TestFindOne(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connect := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connect)
 
-	collection := New(connect)
-	ing, err := collection.FindOne(context.Background(), "5d8f744446106c8aee8cde37")
+	ing, err := FindOne(context.Background(), "5d8f744446106c8aee8cde37")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, ing)

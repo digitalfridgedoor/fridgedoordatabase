@@ -14,9 +14,14 @@ import (
 )
 
 // FindOne finds a recipe by ID
-func (coll *Collection) FindOne(ctx context.Context, id string) (*Recipe, error) {
+func FindOne(ctx context.Context, id string) (*Recipe, error) {
 
-	singleResult, err := coll.collection.FindByID(ctx, id)
+	connected, collection := collection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	singleResult, err := collection.FindByID(ctx, id)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
 	if err != nil {
@@ -27,7 +32,12 @@ func (coll *Collection) FindOne(ctx context.Context, id string) (*Recipe, error)
 }
 
 // FindByIds finds recipe by ID
-func (coll *Collection) FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, error) {
+func FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	// Pass these options to the Find method
 	findOptions := options.Find()
@@ -36,7 +46,7 @@ func (coll *Collection) FindByIds(ctx context.Context, ids []primitive.ObjectID)
 	_in := bson.M{"$in": ids}
 	idin := bson.M{"_id": _in}
 
-	cur, err := coll.mongoCollection().Find(context.Background(), idin, findOptions)
+	cur, err := mongoCollection.Find(context.Background(), idin, findOptions)
 	if err != nil {
 		return make([]*Description, 0), err
 	}
@@ -45,7 +55,12 @@ func (coll *Collection) FindByIds(ctx context.Context, ids []primitive.ObjectID)
 }
 
 // List lists all the available recipe
-func (coll *Collection) List(ctx context.Context) ([]*Description, error) {
+func List(ctx context.Context) ([]*Description, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	duration3s, _ := time.ParseDuration("3s")
 	findctx, cancelFunc := context.WithTimeout(ctx, duration3s)
@@ -55,7 +70,7 @@ func (coll *Collection) List(ctx context.Context) ([]*Description, error) {
 	findOptions := options.Find()
 	findOptions.SetLimit(25)
 
-	cur, err := coll.mongoCollection().Find(findctx, bson.D{{}}, findOptions)
+	cur, err := mongoCollection.Find(findctx, bson.D{{}}, findOptions)
 	if err != nil {
 		return make([]*Description, 0), err
 	}

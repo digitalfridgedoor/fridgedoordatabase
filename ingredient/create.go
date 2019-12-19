@@ -9,7 +9,12 @@ import (
 )
 
 // Create creates a new ingredient with given name
-func (coll *Collection) Create(ctx context.Context, name string) (*Ingredient, error) {
+func Create(ctx context.Context, name string) (*Ingredient, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	insertOneOptions := options.InsertOne()
 
@@ -18,12 +23,12 @@ func (coll *Collection) Create(ctx context.Context, name string) (*Ingredient, e
 		AddedOn: time.Now(),
 	}
 
-	insertOneResult, err := coll.mongoCollection().InsertOne(ctx, ingredient, insertOneOptions)
+	insertOneResult, err := mongoCollection.InsertOne(ctx, ingredient, insertOneOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
-	return coll.FindOne(ctx, insertedID.Hex())
+	return FindOne(ctx, insertedID.Hex())
 }

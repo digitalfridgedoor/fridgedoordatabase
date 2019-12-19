@@ -2,7 +2,6 @@ package ingredient
 
 import (
 	"context"
-	"log"
 
 	"github.com/digitalfridgedoor/fridgedoordatabase"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,7 +10,12 @@ import (
 )
 
 // FindByName finds ingredients starting with the given letter
-func (coll *Collection) FindByName(ctx context.Context, startsWith string) ([]*Ingredient, error) {
+func FindByName(ctx context.Context, startsWith string) ([]*Ingredient, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
 
 	// Pass these options to the Find method
 	findOptions := options.Find()
@@ -20,7 +24,7 @@ func (coll *Collection) FindByName(ctx context.Context, startsWith string) ([]*I
 	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
 	startsWithBson := bson.M{"name": regex}
 
-	cur, err := coll.mongoCollection().Find(ctx, startsWithBson, findOptions)
+	cur, err := mongoCollection.Find(ctx, startsWithBson, findOptions)
 	if err != nil {
 		return make([]*Ingredient, 0), err
 	}
@@ -37,30 +41,16 @@ func (coll *Collection) FindByName(ctx context.Context, startsWith string) ([]*I
 }
 
 // FindOne does not find one
-func (coll *Collection) FindOne(ctx context.Context, id string) (*Ingredient, error) {
+func FindOne(ctx context.Context, id string) (*Ingredient, error) {
 
-	singleResult, err := coll.collection.FindByID(ctx, id)
+	connected, collection := collection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	singleResult, err := collection.FindByID(ctx, id)
 
 	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Ingredient{})
 
 	return ing.(*Ingredient), err
-}
-
-// IngredientByParentID returns an array of ingredients with the given parentID
-func (coll *Collection) IngredientByParentID(ctx context.Context, parentID primitive.ObjectID) []*Ingredient {
-
-	cur, err := coll.mongoCollection().Find(ctx, bson.M{"parentId": parentID})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ingCh := fridgedoordatabase.Parse(ctx, cur, &Ingredient{})
-
-	results := make([]*Ingredient, 0)
-
-	for i := range ingCh {
-		results = append(results, i.(*Ingredient))
-	}
-
-	return results
 }

@@ -6,16 +6,14 @@ import (
 	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
-// Collection is a recipe-wrapped collection
-type Collection struct {
-	collection *fridgedoordatabase.Collection
+func collection() (bool, *fridgedoordatabase.Collection) {
+	return fridgedoordatabase.CreateCollection("recipeapi", "recipes")
 }
 
-// New creates an instance of recipe.Collection
-func New(db fridgedoordatabase.Connection) *Collection {
-	return &Collection{db.Collection("recipeapi", "recipes")}
-}
-
-func (coll *Collection) mongoCollection() *mongo.Collection {
-	return coll.collection.MongoCollection
+func mongoCollection() (bool, *mongo.Collection) {
+	connected, collection := collection()
+	if !connected {
+		return false, nil
+	}
+	return true, collection.MongoCollection
 }
