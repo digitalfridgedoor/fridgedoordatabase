@@ -54,6 +54,39 @@ func FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, e
 	return parseRecipe(ctx, cur)
 }
 
+// FindByName finds recipes starting with the given letter
+func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID) ([]*Recipe, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	// Pass these options to the Find method
+	findOptions := options.Find()
+	findOptions.SetLimit(20)
+
+	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
+	startsWithBson := bson.M{"name": regex}
+	addedByBson := bson.M{"addedBy": userID}
+	andBson := bson.M{"$and": []bson.M{startsWithBson, addedByBson}}
+
+	cur, err := mongoCollection.Find(ctx, andBson, findOptions)
+	if err != nil {
+		return make([]*Recipe, 0), err
+	}
+
+	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+
+	results := make([]*Recipe, 0)
+
+	for i := range recipeCh {
+		results = append(results, i.(*Recipe))
+	}
+
+	return results, nil
+}
+
 // List lists all the available recipe
 func List(ctx context.Context) ([]*Description, error) {
 

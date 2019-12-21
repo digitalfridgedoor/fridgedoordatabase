@@ -28,6 +28,21 @@ func TestFindOne(t *testing.T) {
 	assert.Equal(t, 0, len(r.Recipes))
 }
 
+func TestFindStartingWith(t *testing.T) {
+	connectionstring := getEnvironmentVariable("connectionstring")
+	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
+	assert.True(t, connected)
+
+	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
+	assert.Nil(t, err)
+
+	results, err := FindByName(context.Background(), "mach", userID)
+
+	assert.Nil(t, err)
+	assert.NotNil(t, results)
+	assert.Equal(t, 1, len(results))
+}
+
 func TestList(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
