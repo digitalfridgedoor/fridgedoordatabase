@@ -8,7 +8,7 @@ import (
 
 // Recipe represents a recipe
 type Recipe struct {
-	ID      primitive.ObjectID `son:"id" bson:"_id,omitempty"`
+	ID      primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name    string             `json:"name"`
 	AddedOn time.Time          `json:"addedOn"`
 	AddedBy primitive.ObjectID `json:"addedBy"`
@@ -34,12 +34,12 @@ type Ingredient struct {
 
 // SubRecipe is a pointer to a recipe that makes up the main recipe
 type SubRecipe struct {
-	Name     string `json:"name"`
-	RecipeID string `json:"recipeId"`
+	Name     string             `json:"name"`
+	RecipeID primitive.ObjectID `json:"recipeId"`
 }
 
 // Description is a short representation of a recipe
 type Description struct {
-	ID   primitive.ObjectID `son:"id" bson:"_id,omitempty"`
+	ID   primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name string             `json:"name"`
 }

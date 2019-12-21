@@ -24,7 +24,7 @@ func TestUpdate(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipe)
-	assert.Equal(t, "new recipe", recipe.Name)
+	assert.Equal(t, recipeName, recipe.Name)
 
 	recipeIDString := recipe.ID.Hex()
 
@@ -60,22 +60,4 @@ func TestUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)
-}
-
-func TestRunCode(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	ctx := context.Background()
-	recipeID := "5debadc725fbf484aed19ce4"
-	connected := fridgedoordatabase.Connect(ctx, connectionstring)
-	assert.True(t, connected)
-
-	recipe, err := FindOne(ctx, recipeID)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, recipe)
-	assert.Equal(t, "Fajitas", recipe.Name)
-
-	updates := make(map[string]string)
-	updates["preperation"] = "test"
-	UpdateIngredient(ctx, recipeID, 0, "5d8f739ba7888700270f775a", updates)
 }
