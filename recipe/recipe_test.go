@@ -18,14 +18,14 @@ func TestFindOne(t *testing.T) {
 	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
 	assert.True(t, connected)
 
-	r, err := FindOne(context.Background(), "5dbc80036eb36874255e7fcd")
+	r, err := FindOne(context.Background(), "5dbc814c6eb36874255e7fd0")
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
-	assert.Equal(t, "5dbc80036eb36874255e7fcd", r.ID.Hex())
-	assert.Equal(t, "Nandos chicken", r.Name)
+	assert.Equal(t, "5dbc814c6eb36874255e7fd0", r.ID.Hex())
+	assert.Equal(t, "Macho peas", r.Name)
 	assert.Equal(t, 0, len(r.Method))
-	assert.Equal(t, 1, len(r.Recipes))
+	assert.Equal(t, 0, len(r.Recipes))
 }
 
 func TestList(t *testing.T) {

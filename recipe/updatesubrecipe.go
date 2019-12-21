@@ -20,12 +20,28 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 		return err
 	}
 
+	if recipe.IsSubRecipe {
+		fmt.Println("Cannot add subrecipe to subrecipe")
+		return errSubRecipe
+	}
+
 	if hasSubRecipe(recipe, subRecipeID) {
 		return errDuplicate
 	}
 
 	subRecipe, err := FindOne(ctx, subRecipeID)
 	if err != nil {
+		return err
+	}
+
+	if len(subRecipe.Recipes) != 0 {
+		return errSubRecipe
+	}
+
+	subRecipe.IsSubRecipe = true
+	err = collection.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		fmt.Printf("Error updating subrecipe: %v\n", err)
 		return err
 	}
 
