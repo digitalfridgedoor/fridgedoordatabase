@@ -46,6 +46,7 @@ func FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, e
 	_in := bson.M{"$in": ids}
 	idin := bson.M{"_id": _in}
 
+	// todo: projection to only select the fields in Description?
 	cur, err := mongoCollection.Find(context.Background(), idin, findOptions)
 	if err != nil {
 		return make([]*Description, 0), err
@@ -68,7 +69,7 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 
 	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
 	startsWithBson := bson.M{"name": regex}
-	addedByBson := bson.M{"addedBy": userID}
+	addedByBson := bson.M{"addedby": userID}
 	andBson := bson.M{"$and": []bson.M{startsWithBson, addedByBson}}
 
 	cur, err := mongoCollection.Find(ctx, andBson, findOptions)

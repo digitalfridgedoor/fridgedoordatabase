@@ -15,6 +15,10 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 		return errNotConnected
 	}
 
+	if recipeID == subRecipeID {
+		return errSubRecipe
+	}
+
 	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return err

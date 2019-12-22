@@ -33,10 +33,10 @@ func TestFindStartingWith(t *testing.T) {
 	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
 	assert.True(t, connected)
 
-	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
+	userID, err := primitive.ObjectIDFromHex("5de28cfd7633c82c6982cd0a")
 	assert.Nil(t, err)
 
-	results, err := FindByName(context.Background(), "mach", userID)
+	results, err := FindByName(context.Background(), "fi", userID)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, results)
