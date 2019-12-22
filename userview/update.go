@@ -8,17 +8,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// SetNickname updates the users nickkname
-func SetNickname(ctx context.Context, viewID primitive.ObjectID, nickname string) error {
+// SetNickname updates the users nickname
+func SetNickname(ctx context.Context, view *View, nickname string) error {
 
 	connected, collection := collection()
 	if !connected {
 		return errNotConnected
-	}
-
-	view, err := FindOne(ctx, viewID)
-	if err != nil {
-		return err
 	}
 
 	if view.Nickname == nickname {
@@ -27,7 +22,7 @@ func SetNickname(ctx context.Context, viewID primitive.ObjectID, nickname string
 
 	view.Nickname = nickname
 
-	return collection.UpdateByID(ctx, viewID, view)
+	return collection.UpdateByID(ctx, view.ID.Hex(), view)
 }
 
 // AddRecipe adds recipe to users list
