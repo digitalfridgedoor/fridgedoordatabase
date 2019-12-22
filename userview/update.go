@@ -11,16 +11,16 @@ import (
 // SetNickname updates the users nickname
 func SetNickname(ctx context.Context, view *View, nickname string) error {
 
-	connected, collection := collection()
-	if !connected {
-		return errNotConnected
-	}
-
-	if view.Nickname == nickname {
+	if nickname == "" || view.Nickname == nickname {
 		return nil
 	}
 
 	view.Nickname = nickname
+
+	connected, collection := collection()
+	if !connected {
+		return errNotConnected
+	}
 
 	return collection.UpdateByID(ctx, view.ID.Hex(), view)
 }

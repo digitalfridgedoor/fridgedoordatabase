@@ -24,6 +24,7 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 		return err
 	}
 
+	// todo: append parent so we know when we unlink?
 	if recipe.IsSubRecipe {
 		fmt.Println("Cannot add subrecipe to subrecipe")
 		return errSubRecipe
