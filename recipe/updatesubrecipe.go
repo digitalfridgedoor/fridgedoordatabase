@@ -25,7 +25,7 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 	}
 
 	// todo: append parent so we know when we unlink?
-	if recipe.IsSubRecipe {
+	if len(recipe.ParentIds) > 0 {
 		fmt.Println("Cannot add subrecipe to subrecipe")
 		return errSubRecipe
 	}
@@ -43,7 +43,7 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 		return errSubRecipe
 	}
 
-	subRecipe.IsSubRecipe = true
+	subRecipe.ParentIds = appendParentRecipeID(subRecipe.ParentIds, recipe.ID)
 	err = collection.UpdateByID(ctx, recipeID, recipe)
 	if err != nil {
 		fmt.Printf("Error updating subrecipe: %v\n", err)
@@ -83,6 +83,17 @@ func RemoveSubRecipe(ctx context.Context, recipeID string, subRecipeID string) e
 
 	recipe.Recipes = filterSubRecipes(recipe.Recipes, filterFn)
 
+	subRecipe, err := FindOne(ctx, subRecipeID)
+	if err == nil {
+		subRecipe.ParentIds = removeParentRecipeID(subRecipe.ParentIds, recipe.ID)
+		err = collection.UpdateByID(ctx, subRecipeID, subRecipe)
+		if err != nil {
+			fmt.Printf("Error updating subrecipe: %v.", err)
+		}
+	} else {
+		fmt.Printf("Could not find subrecipe with id=%v.\n", subRecipeID)
+	}
+
 	return collection.UpdateByID(ctx, recipeID, recipe)
 }
 
@@ -102,6 +113,34 @@ func filterSubRecipes(subRecipes []SubRecipe, filterFn func(ing *SubRecipe) bool
 	for _, sr := range subRecipes {
 		if filterFn(&sr) {
 			filtered = append(filtered, sr)
+		}
+	}
+
+	return filtered
+}
+
+func appendParentRecipeID(parentIds []primitive.ObjectID, parentID primitive.ObjectID) []primitive.ObjectID {
+	hasParentID := false
+
+	for _, id := range parentIds {
+		if id == parentID {
+			hasParentID = true
+		}
+	}
+
+	if !hasParentID {
+		parentIds = append(parentIds, parentID)
+	}
+
+	return parentIds
+}
+
+func removeParentRecipeID(parentIds []primitive.ObjectID, parentID primitive.ObjectID) []primitive.ObjectID {
+	filtered := []primitive.ObjectID{}
+
+	for _, id := range parentIds {
+		if id != parentID {
+			filtered = append(filtered, id)
 		}
 	}
 
