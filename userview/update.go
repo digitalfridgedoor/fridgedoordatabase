@@ -9,7 +9,7 @@ import (
 )
 
 // SetNickname updates the users nickkname
-func SetNickname(ctx context.Context, viewID string, nickname string) error {
+func SetNickname(ctx context.Context, viewID primitive.ObjectID, nickname string) error {
 
 	connected, collection := collection()
 	if !connected {
