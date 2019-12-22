@@ -14,5 +14,6 @@ type RecipeCollection struct {
 type View struct {
 	ID          primitive.ObjectID           `json:"id" bson:"_id,omitempty"`
 	Username    string                       `json:"username"`
+	Nickname    string                       `json:"nickname"`
 	Collections map[string]*RecipeCollection `json:"collections"`
 }
