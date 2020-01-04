@@ -88,10 +88,10 @@ func TestAddAndRemove(t *testing.T) {
 
 	recipeIDString := recipe.ID.Hex()
 
-	err = AddMethodStep(ctx, recipeIDString, "Add to pan")
+	err = AddMethodStep(ctx, userID, recipeIDString, "Add to pan")
 	assert.Nil(t, err)
 
-	err = AddIngredient(ctx, recipeIDString, 0, ingredientID, "Test ing")
+	err = AddIngredient(ctx, userID, recipeIDString, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
 	latestRecipe, err := FindOne(ctx, recipeIDString)
@@ -100,10 +100,10 @@ func TestAddAndRemove(t *testing.T) {
 	method := latestRecipe.Method[0]
 	assert.Equal(t, 1, len(method.Ingredients))
 
-	err = RemoveIngredient(ctx, recipeIDString, 0, ingredientID)
+	err = RemoveIngredient(ctx, userID, recipeIDString, 0, ingredientID)
 	assert.Nil(t, err)
 
-	err = RemoveMethodStepByIndex(ctx, recipeIDString, 0)
+	err = RemoveMethodStepByIndex(ctx, userID, recipeIDString, 0)
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)

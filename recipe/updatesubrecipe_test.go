@@ -33,7 +33,7 @@ func TestAddSubRecipe(t *testing.T) {
 	recipeIDString := recipe.ID.Hex()
 	subRecipeIDString := subRecipe.ID.Hex()
 
-	err = AddSubRecipe(ctx, recipeIDString, subRecipeIDString)
+	err = AddSubRecipe(ctx, userID, recipeIDString, subRecipeIDString)
 	assert.Nil(t, err)
 
 	latestRecipe, err := FindOne(ctx, recipeIDString)
@@ -44,7 +44,7 @@ func TestAddSubRecipe(t *testing.T) {
 	assert.Equal(t, subRecipe.ID, latestSubRecipe.RecipeID)
 	assert.Equal(t, subRecipe.Name, subRecipeName)
 
-	err = RemoveSubRecipe(ctx, recipeIDString, subRecipeIDString)
+	err = RemoveSubRecipe(ctx, userID, recipeIDString, subRecipeIDString)
 	assert.Nil(t, err)
 
 	latestRecipe, err = FindOne(ctx, recipeIDString)

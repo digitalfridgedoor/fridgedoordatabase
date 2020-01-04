@@ -8,7 +8,7 @@ import (
 )
 
 // AddSubRecipe adds a link between the recipe and the subrecipe
-func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) error {
+func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string, subRecipeID string) error {
 
 	connected, collection := collection()
 	if !connected {
@@ -22,6 +22,11 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return err
+	}
+
+	if !canEdit(recipe, user) {
+		fmt.Println("User not authorised to update recipe")
+		return errUnauthorised
 	}
 
 	// todo: append parent so we know when we unlink?
@@ -59,7 +64,7 @@ func AddSubRecipe(ctx context.Context, recipeID string, subRecipeID string) erro
 }
 
 // RemoveSubRecipe the link between the recipe/subrecipe
-func RemoveSubRecipe(ctx context.Context, recipeID string, subRecipeID string) error {
+func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string, subRecipeID string) error {
 
 	connected, collection := collection()
 	if !connected {
@@ -75,6 +80,11 @@ func RemoveSubRecipe(ctx context.Context, recipeID string, subRecipeID string) e
 	recipe, err := FindOne(ctx, recipeID)
 	if err != nil {
 		return err
+	}
+
+	if !canEdit(recipe, user) {
+		fmt.Println("User not authorised to update recipe")
+		return errUnauthorised
 	}
 
 	filterFn := func(id *SubRecipe) bool {

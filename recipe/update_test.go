@@ -28,10 +28,10 @@ func TestUpdate(t *testing.T) {
 
 	recipeIDString := recipe.ID.Hex()
 
-	err = AddMethodStep(ctx, recipeIDString, "Add to pan")
+	err = AddMethodStep(ctx, userID, recipeIDString, "Add to pan")
 	assert.Nil(t, err)
 
-	err = AddIngredient(ctx, recipeIDString, 0, ingredientID, "Test ing")
+	err = AddIngredient(ctx, userID, recipeIDString, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
 	latestRecipe, err := FindOne(ctx, recipeIDString)
@@ -42,7 +42,7 @@ func TestUpdate(t *testing.T) {
 
 	updates := make(map[string]string)
 	updates["amount"] = "1 1/2 tsp"
-	err = UpdateIngredient(ctx, recipeIDString, 0, ingredientID, updates)
+	err = UpdateIngredient(ctx, userID, recipeIDString, 0, ingredientID, updates)
 	assert.Nil(t, err)
 
 	latestRecipe, err = FindOne(ctx, recipeIDString)
@@ -53,10 +53,10 @@ func TestUpdate(t *testing.T) {
 	ing := method.Ingredients[0]
 	assert.Equal(t, "1 1/2 tsp", ing.Amount)
 
-	err = RemoveIngredient(ctx, recipeIDString, 0, ingredientID)
+	err = RemoveIngredient(ctx, userID, recipeIDString, 0, ingredientID)
 	assert.Nil(t, err)
 
-	err = RemoveMethodStepByIndex(ctx, recipeIDString, 0)
+	err = RemoveMethodStepByIndex(ctx, userID, recipeIDString, 0)
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)

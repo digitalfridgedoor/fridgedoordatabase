@@ -15,6 +15,7 @@ type Recipe struct {
 	Method    []MethodStep         `json:"method"`
 	Recipes   []SubRecipe          `json:"recipes"`
 	ParentIds []primitive.ObjectID `json:"parentIds"`
+	Image     bool                 `json:"image"`
 }
 
 // MethodStep is an instruction with a collection of ingredients
