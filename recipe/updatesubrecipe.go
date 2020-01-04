@@ -49,7 +49,7 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string,
 	}
 
 	subRecipe.ParentIds = appendParentRecipeID(subRecipe.ParentIds, recipe.ID)
-	err = collection.UpdateByID(ctx, recipeID, recipe)
+	err = collection.UpdateByID(ctx, subRecipeID, subRecipe)
 	if err != nil {
 		fmt.Printf("Error updating subrecipe: %v\n", err)
 		return err
