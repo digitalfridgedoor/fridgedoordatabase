@@ -16,4 +16,5 @@ type View struct {
 	Username    string                       `json:"username"`
 	Nickname    string                       `json:"nickname"`
 	Collections map[string]*RecipeCollection `json:"collections"`
+	Tags        []string                     `json:"tags"`
 }
