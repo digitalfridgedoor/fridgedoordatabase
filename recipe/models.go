@@ -16,6 +16,7 @@ type Recipe struct {
 	Recipes   []SubRecipe          `json:"recipes"`
 	ParentIds []primitive.ObjectID `json:"parentIds"`
 	Image     bool                 `json:"image"`
+	Tags      []string             `json:"tags"`
 }
 
 // MethodStep is an instruction with a collection of ingredients
@@ -42,6 +43,7 @@ type SubRecipe struct {
 
 // Description is a short representation of a recipe
 type Description struct {
-	ID   primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name string             `json:"name"`
+	ID    primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name  string             `json:"name"`
+	Image bool               `json:"image"`
 }

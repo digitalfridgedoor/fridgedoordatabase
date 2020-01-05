@@ -74,10 +74,10 @@ func GetLinkedUserViews(ctx context.Context) ([]*View, error) {
 	if err != nil {
 		return nil, err
 	}
-	return parseRecipe(ctx, cur)
+	return parseView(ctx, cur)
 }
 
-func parseRecipe(ctx context.Context, cur *mongo.Cursor) ([]*View, error) {
+func parseView(ctx context.Context, cur *mongo.Cursor) ([]*View, error) {
 	ingCh := fridgedoordatabase.Parse(ctx, cur, &View{})
 
 	results := make([]*View, 0)

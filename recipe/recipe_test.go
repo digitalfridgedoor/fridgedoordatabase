@@ -43,12 +43,14 @@ func TestFindStartingWith(t *testing.T) {
 	assert.Equal(t, 1, len(results))
 }
 
-func TestList(t *testing.T) {
+func TestUserRecipes(t *testing.T) {
 	connectionstring := getEnvironmentVariable("connectionstring")
 	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
 	assert.True(t, connected)
 
-	recipes, err := List(context.Background())
+	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
+
+	recipes, err := UserRecipes(context.Background(), userID)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, recipes)

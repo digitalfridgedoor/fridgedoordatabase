@@ -88,8 +88,8 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 	return results, nil
 }
 
-// List lists all the available recipe
-func List(ctx context.Context) ([]*Description, error) {
+// UserRecipes lists all the users recipes
+func UserRecipes(ctx context.Context, userID primitive.ObjectID) ([]*Description, error) {
 
 	connected, mongoCollection := mongoCollection()
 	if !connected {
@@ -104,12 +104,59 @@ func List(ctx context.Context) ([]*Description, error) {
 	findOptions := options.Find()
 	findOptions.SetLimit(25)
 
-	cur, err := mongoCollection.Find(findctx, bson.D{{}}, findOptions)
+	cur, err := mongoCollection.Find(findctx, bson.D{primitive.E{Key: "addedBy", Value: userID}}, findOptions)
 	if err != nil {
 		return make([]*Description, 0), err
 	}
 
 	return parseRecipe(ctx, cur)
+}
+
+// FindByTags finds recipes with the given tags
+func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string) ([]*Recipe, error) {
+
+	// https://stackoverflow.com/questions/6940503/mongodb-get-documents-by-tags
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	// Pass these options to the Find method
+	findOptions := options.Find()
+	findOptions.SetLimit(20)
+
+	// { $and: [ {tags: { $all: ["tag"] } }, { tags: { $nin: ["anothertag"] } } ] }
+
+	addedByBson := bson.M{"addedby": userID}
+	andBson := []bson.M{addedByBson}
+
+	if tags != nil && len(tags) > 0 {
+		allBson := bson.M{"$all": tags}
+		tagsBson := bson.M{"tags": allBson}
+		andBson = append(andBson, tagsBson)
+	}
+
+	if notTags != nil && len(notTags) > 0 {
+		ninBson := bson.M{"$nin": notTags}
+		ninTagsBson := bson.M{"tags": ninBson}
+		andBson = append(andBson, ninTagsBson)
+	}
+
+	cur, err := mongoCollection.Find(ctx, bson.M{"$and": andBson}, findOptions)
+	if err != nil {
+		return make([]*Recipe, 0), err
+	}
+
+	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+
+	results := make([]*Recipe, 0)
+
+	for i := range recipeCh {
+		results = append(results, i.(*Recipe))
+	}
+
+	return results, nil
 }
 
 func parseRecipe(ctx context.Context, cur *mongo.Cursor) ([]*Description, error) {
