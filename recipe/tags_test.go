@@ -28,14 +28,18 @@ func TestTags(t *testing.T) {
 	recipeIDString := recipe.ID.Hex()
 	tag := primitive.NewObjectID().Hex()
 
-	err = AddTag(ctx, userID, recipeIDString, tag)
+	updates := make(map[string]string)
+	updates["tag_add"] = tag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{tag}, []string{})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(results))
 
-	err = RemoveTag(ctx, userID, recipeIDString, tag)
+	updates = make(map[string]string)
+	updates["tag_remove"] = tag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{})
 	assert.Nil(t, err)
@@ -62,12 +66,14 @@ func TestNinTags(t *testing.T) {
 
 	tag := primitive.NewObjectID().Hex()
 
-	err = AddTag(ctx, userID, recipeIDString, tag)
+	updates := make(map[string]string)
+	updates["tag_add"] = tag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{}, []string{tag})
 	assert.Nil(t, err)
-	assert.GreaterOrEqual(t, len(results), 12)
+	assert.GreaterOrEqual(t, len(results), 1)
 
 	recipeInResult := false
 	for _, r := range results {
@@ -99,22 +105,32 @@ func TestIncludeAndNinTags(t *testing.T) {
 	tag := primitive.NewObjectID().Hex()
 	anothertag := primitive.NewObjectID().Hex()
 
-	err = AddTag(ctx, userID, recipeIDString, tag)
+	updates := make(map[string]string)
+	updates["tag_add"] = tag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
+
+	r, err := FindOne(ctx, recipeIDString)
+	assert.Nil(t, err)
+	assert.NotNil(t, r)
 
 	results, err := FindByTags(ctx, userID, []string{tag}, []string{anothertag})
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(results))
 	assert.Equal(t, recipeName, results[0].Name)
 
-	err = AddTag(ctx, userID, recipeIDString, anothertag)
+	updates = make(map[string]string)
+	updates["tag_add"] = anothertag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag})
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(results))
 
-	err = RemoveTag(ctx, userID, recipeIDString, anothertag)
+	updates = make(map[string]string)
+	updates["tag_remove"] = anothertag
+	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag})
 
 	assert.Nil(t, err)

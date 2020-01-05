@@ -133,13 +133,13 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 
 	if tags != nil && len(tags) > 0 {
 		allBson := bson.M{"$all": tags}
-		tagsBson := bson.M{"tags": allBson}
+		tagsBson := bson.M{"metadata.tags": allBson}
 		andBson = append(andBson, tagsBson)
 	}
 
 	if notTags != nil && len(notTags) > 0 {
 		ninBson := bson.M{"$nin": notTags}
-		ninTagsBson := bson.M{"tags": ninBson}
+		ninTagsBson := bson.M{"metadata.tags": ninBson}
 		andBson = append(andBson, ninTagsBson)
 	}
 

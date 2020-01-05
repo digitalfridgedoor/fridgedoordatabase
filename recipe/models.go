@@ -15,8 +15,7 @@ type Recipe struct {
 	Method    []MethodStep         `json:"method"`
 	Recipes   []SubRecipe          `json:"recipes"`
 	ParentIds []primitive.ObjectID `json:"parentIds"`
-	Image     bool                 `json:"image"`
-	Tags      []string             `json:"tags"`
+	Metadata  Metadata             `json:"metadata"`
 }
 
 // MethodStep is an instruction with a collection of ingredients
@@ -39,6 +38,20 @@ type Ingredient struct {
 type SubRecipe struct {
 	Name     string             `json:"name"`
 	RecipeID primitive.ObjectID `json:"recipeId"`
+}
+
+// Metadata contains extra information about the recipe
+type Metadata struct {
+	Image      bool       `json:"image"`
+	Tags       []string   `json:"tags"`
+	Links      []string   `json:"links"`
+	ViewableBy ViewableBy `json:"viewableBy"`
+}
+
+// ViewableBy describes who can view the recipe as well as the user
+type ViewableBy struct {
+	Everyone bool                 `json:"everyone"`
+	Users    []primitive.ObjectID `json:"users"`
 }
 
 // Description is a short representation of a recipe
