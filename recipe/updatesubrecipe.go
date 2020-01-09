@@ -24,7 +24,7 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string,
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -82,7 +82,7 @@ func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID stri
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}

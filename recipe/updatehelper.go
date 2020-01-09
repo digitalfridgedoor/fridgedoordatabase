@@ -4,10 +4,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func CanEdit(recipe *Recipe, userID primitive.ObjectID) bool {
-	return recipe.AddedBy == userID
-}
-
 func appendString(current []string, value string) []string {
 	hasValue := false
 

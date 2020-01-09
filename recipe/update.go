@@ -20,7 +20,7 @@ func Rename(ctx context.Context, user primitive.ObjectID, recipeID string, name 
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -43,7 +43,7 @@ func UpdateMetadata(ctx context.Context, user primitive.ObjectID, recipeID strin
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}

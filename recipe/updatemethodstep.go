@@ -45,7 +45,7 @@ func UpdateMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recip
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -72,7 +72,7 @@ func RemoveMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recip
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !recipe.CanEdit(user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
