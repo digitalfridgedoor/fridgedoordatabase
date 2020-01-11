@@ -159,6 +159,40 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 	return results, nil
 }
 
+// FindPublic gets a users public recipes
+func FindPublic(ctx context.Context, userID primitive.ObjectID) ([]*Recipe, error) {
+
+	connected, mongoCollection := mongoCollection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	// Pass these options to the Find method
+	findOptions := options.Find()
+	findOptions.SetLimit(20)
+
+	// { "metadata.viewableby.everyone": true }
+
+	addedByBson := bson.M{"addedby": userID}
+	viewableByEveryone := bson.M{"metadata.viewableby.everyone": true}
+	andBson := []bson.M{addedByBson, viewableByEveryone}
+
+	cur, err := mongoCollection.Find(ctx, bson.M{"$and": andBson}, findOptions)
+	if err != nil {
+		return make([]*Recipe, 0), err
+	}
+
+	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+
+	results := make([]*Recipe, 0)
+
+	for i := range recipeCh {
+		results = append(results, i.(*Recipe))
+	}
+
+	return results, nil
+}
+
 func parseRecipe(ctx context.Context, cur *mongo.Cursor) ([]*Description, error) {
 	ingCh := fridgedoordatabase.Parse(ctx, cur, &Description{})
 
