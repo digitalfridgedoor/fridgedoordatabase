@@ -12,12 +12,10 @@ import (
 // Create creates a new recipe with given name
 func Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recipe, error) {
 
-	connected, mongoCollection := mongoCollection()
+	connected, collection := collection()
 	if !connected {
 		return nil, errNotConnected
 	}
-
-	insertOneOptions := options.InsertOne()
 
 	recipe := &Recipe{
 		Name:    name,
@@ -25,12 +23,10 @@ func Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recip
 		AddedBy: userID,
 	}
 
-	insertOneResult, err := mongoCollection.InsertOne(ctx, recipe, insertOneOptions)
+	insertedID, err := collection.InsertOne(ctx, recipe)
 	if err != nil {
 		return nil, err
 	}
-
-	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
 
 	return FindOne(ctx, insertedID.Hex())
 }
