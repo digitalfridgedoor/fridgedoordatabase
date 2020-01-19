@@ -21,6 +21,19 @@ func (coll *Collection) InsertOne(ctx context.Context, document interface{}) (*p
 	return &insertedID, nil
 }
 
+// DeleteByID deletes a document by id
+func (coll *Collection) DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+
+	deleteOptions := options.Delete()
+
+	_, err := coll.MongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: id}}, deleteOptions)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UpdateByID finds and updates an object by ID
 func (coll *Collection) UpdateByID(ctx context.Context, id string, obj interface{}) error {
 
