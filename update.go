@@ -8,6 +8,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// InsertOne inserts a new document into the collection
+func (coll *Collection) InsertOne(ctx context.Context, document interface{}) (*primitive.ObjectID, error) {
+	insertOneOptions := options.InsertOne()
+
+	insertOneResult, err := coll.MongoCollection.InsertOne(ctx, document, insertOneOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
+	return &insertedID, nil
+}
+
 // UpdateByID finds and updates an object by ID
 func (coll *Collection) UpdateByID(ctx context.Context, id string, obj interface{}) error {
 
