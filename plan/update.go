@@ -26,7 +26,7 @@ func Update(ctx context.Context, updateRequest *UpdateDayPlanRequest) (*primitiv
 		return nil, errNotConnected
 	}
 
-	plan, isNew, err := getOrCreate(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
+	plan, isNew, err := FindOrCreateOne(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
 	if err != nil {
 		return nil, err
 	}
@@ -54,23 +54,6 @@ func Update(ctx context.Context, updateRequest *UpdateDayPlanRequest) (*primitiv
 
 	err = collection.UpdateByID(ctx, plan.ID.Hex(), plan)
 	return &plan.ID, err
-}
-
-func getOrCreate(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, bool, error) {
-	plan, err := FindByMonthAndYear(ctx, userID, month, year)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if len(plan) == 0 {
-		if ok, p := create(userID, month, year); ok {
-			return p, true, nil
-		}
-
-		return nil, false, errInvalidInput
-	}
-
-	return plan[0], false, nil
 }
 
 func create(userID primitive.ObjectID, month int, year int) (bool, *Plan) {

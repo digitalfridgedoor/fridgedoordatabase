@@ -20,7 +20,7 @@ func TestFindByMonthAndYear(t *testing.T) {
 
 	userID := primitive.NewObjectID()
 
-	r, err := FindByMonthAndYear(context.Background(), userID, 1, 2020)
+	r, err := findByMonthAndYear(context.Background(), userID, 1, 2020)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)

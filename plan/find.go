@@ -9,8 +9,46 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// FindByMonthAndYear finds a Plan for a user by month and year
-func FindByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) ([]*Plan, error) {
+// FindOrCreateOne finds users plan, or creates one
+func FindOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, bool, error) {
+	plan, err := findByMonthAndYear(ctx, userID, month, year)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(plan) == 0 {
+		if ok, p := create(userID, month, year); ok {
+			return p, true, nil
+		}
+
+		return nil, false, errInvalidInput
+	}
+
+	return plan[0], false, nil
+}
+
+// FindOne finds a Plan by id
+func FindOne(ctx context.Context, planID primitive.ObjectID) (*Plan, error) {
+
+	connected, collection := collection()
+	if !connected {
+		return nil, errNotConnected
+	}
+
+	singleResult, err := collection.FindByID(ctx, planID.Hex())
+	if err != nil {
+		return nil, err
+	}
+
+	plan, err := fridgedoordatabase.ParseSingleResult(singleResult, &Plan{})
+	if err != nil {
+		return nil, err
+	}
+
+	return plan.(*Plan), nil
+}
+
+func findByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) ([]*Plan, error) {
 
 	connected, mongoCollection := mongoCollection()
 	if !connected {
@@ -37,25 +75,4 @@ func FindByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month in
 	}
 
 	return results, nil
-}
-
-// FindOne finds a Plan by id
-func FindOne(ctx context.Context, planID primitive.ObjectID) (*Plan, error) {
-
-	connected, collection := collection()
-	if !connected {
-		return nil, errNotConnected
-	}
-
-	singleResult, err := collection.FindByID(ctx, planID.Hex())
-	if err != nil {
-		return nil, err
-	}
-
-	plan, err := fridgedoordatabase.ParseSingleResult(singleResult, &Plan{})
-	if err != nil {
-		return nil, err
-	}
-
-	return plan.(*Plan), nil
 }
