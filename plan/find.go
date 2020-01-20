@@ -9,22 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// FindOrCreateOne finds users plan, or creates one
-func FindOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, bool, error) {
-	plan, err := findByMonthAndYear(ctx, userID, month, year)
-	if err != nil {
-		return nil, false, err
-	}
-
-	if len(plan) == 0 {
-		if ok, p := create(userID, month, year); ok {
-			return p, true, nil
-		}
-
-		return nil, false, errInvalidInput
-	}
-
-	return plan[0], false, nil
+// FindByMonthAndYear finds users plan, or creates one
+func FindByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, error) {
+	plan, _, err := getOrCreateOne(ctx, userID, month, year)
+	return plan, err
 }
 
 // FindOne finds a Plan by id
@@ -46,6 +34,23 @@ func FindOne(ctx context.Context, planID primitive.ObjectID) (*Plan, error) {
 	}
 
 	return plan.(*Plan), nil
+}
+
+func getOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, bool, error) {
+	plan, err := findByMonthAndYear(ctx, userID, month, year)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if len(plan) == 0 {
+		if ok, p := create(userID, month, year); ok {
+			return p, true, nil
+		}
+
+		return nil, false, errInvalidInput
+	}
+
+	return plan[0], false, nil
 }
 
 func findByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) ([]*Plan, error) {

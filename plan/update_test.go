@@ -76,7 +76,7 @@ func TestUpdate(t *testing.T) {
 
 	connected, collection := collection()
 	err = collection.DeleteByID(context.TODO(), *updatedID)
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
 
 func checkExpectedDays(t *testing.T, month int, year int, expected int) {

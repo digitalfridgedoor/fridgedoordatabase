@@ -26,7 +26,7 @@ func Update(ctx context.Context, updateRequest *UpdateDayPlanRequest) (*primitiv
 		return nil, errNotConnected
 	}
 
-	plan, isNew, err := FindOrCreateOne(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
+	plan, isNew, err := getOrCreateOne(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
 	if err != nil {
 		return nil, err
 	}
