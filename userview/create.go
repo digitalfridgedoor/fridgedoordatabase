@@ -3,67 +3,53 @@ package userview
 import (
 	"context"
 	"errors"
+	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 )
 
 var errUserExists = errors.New("User exists")
 
 // Create creates a new userview for a user
-func Create(ctx context.Context, username string) (*View, error) {
+func Create(ctx context.Context, username string) (*dfdmodels.UserView, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	_, err := GetByUsername(ctx, username)
+	_, err := coll.getByUsername(ctx, username)
 	if err == nil {
 		// found user with that username
 		return nil, errUserExists
 	}
 
-	insertOneOptions := options.InsertOne()
-
-	collections := make(map[string]*RecipeCollection)
-	view := &View{
-		Username:    username,
-		Collections: collections,
+	view := &dfdmodels.UserView{
+		Username: username,
 	}
 
-	insertOneResult, err := mongoCollection.InsertOne(ctx, view, insertOneOptions)
+	v, err := coll.c.InsertOneAndFind(ctx, view, &dfdmodels.UserView{})
 	if err != nil {
 		return nil, err
 	}
 
-	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
-
-	return FindOne(ctx, insertedID.Hex())
+	return v.(*dfdmodels.UserView), nil
 }
 
 // Delete removes a userview for a user
 func Delete(ctx context.Context, username string) error {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	deleteOptions := options.Delete()
-
-	view, err := GetByUsername(ctx, username)
+	view, err := coll.getByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
 
-	viewID := view.ID
-
-	_, err = mongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: viewID}}, deleteOptions)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return coll.c.DeleteByID(ctx, &view.ID)
 }

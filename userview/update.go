@@ -2,14 +2,14 @@ package userview
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/digitalfridgedoor/fridgedoordatabase"
-
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // SetNickname updates the users nickname
-func SetNickname(ctx context.Context, view *View, nickname string) error {
+func SetNickname(ctx context.Context, view *dfdmodels.UserView, nickname string) error {
 
 	if nickname == "" || view.Nickname == nickname {
 		return nil
@@ -17,68 +17,25 @@ func SetNickname(ctx context.Context, view *View, nickname string) error {
 
 	view.Nickname = nickname
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	return collection.UpdateByID(ctx, view.ID.Hex(), view)
-}
-
-// AddRecipe adds recipe to users list
-func AddRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
-
-	connected, collection := collection()
-	if !connected {
-		return errNotConnected
-	}
-
-	view, err := FindOne(ctx, viewID)
-	if err != nil {
-		return err
-	}
-
-	if _, ok := view.Collections[collectionName]; !ok {
-		view.Collections[collectionName] = &RecipeCollection{Name: collectionName}
-	}
-
-	view.Collections[collectionName].addRecipe(recipeID)
-
-	return collection.UpdateByID(ctx, viewID, view)
-}
-
-// RemoveRecipe removes recipe from users list
-func RemoveRecipe(ctx context.Context, viewID string, collectionName string, recipeID primitive.ObjectID) error {
-	view, err := FindOne(ctx, viewID)
-	if err != nil {
-		return err
-	}
-
-	filterFn := func(id *primitive.ObjectID) bool {
-		return *id != recipeID
-	}
-
-	if viewCollection, ok := view.Collections[collectionName]; !ok {
-		viewCollection.Recipes = fridgedoordatabase.Filter(viewCollection.Recipes, filterFn)
-	}
-
-	connected, collection := collection()
-	if !connected {
-		return errNotConnected
-	}
-
-	return collection.UpdateByID(ctx, viewID, view)
+	return coll.c.UpdateByID(ctx, &view.ID, view)
 }
 
 // AddTag adds a tag to users list if it isn't already there
-func AddTag(ctx context.Context, viewID string, tag string) error {
+func AddTag(ctx context.Context, id *primitive.ObjectID, tag string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	view, err := FindOne(ctx, viewID)
+	view, err := coll.findOne(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -94,29 +51,26 @@ func AddTag(ctx context.Context, viewID string, tag string) error {
 		view.Tags = append(view.Tags, tag)
 	}
 
-	return collection.UpdateByID(ctx, viewID, view)
+	return coll.c.UpdateByID(ctx, id, view)
 }
 
 // RemoveTag removes a tag from a users list
-func RemoveTag(ctx context.Context, viewID string, tag string) error {
+func RemoveTag(ctx context.Context, id *primitive.ObjectID, tag string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	view, err := FindOne(ctx, viewID)
+	view, err := coll.findOne(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	view.Tags = filterTags(view.Tags, tag)
 
-	return collection.UpdateByID(ctx, viewID, view)
-}
-
-func (r *RecipeCollection) addRecipe(recipeID primitive.ObjectID) {
-	r.Recipes = append(r.Recipes, recipeID)
+	return coll.c.UpdateByID(ctx, id, view)
 }
 
 func filterTags(tags []string, tagToRemove string) []string {
