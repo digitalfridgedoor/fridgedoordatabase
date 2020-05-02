@@ -79,16 +79,13 @@ func TestAddAndRemove(t *testing.T) {
 	err = AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
 	assert.Nil(t, err)
 
-	err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
-	assert.Nil(t, err)
-
-	latestRecipe, err := FindOne(ctx, recipe.ID, userID)
+	latestRecipe, err := AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]
 	assert.Equal(t, 1, len(method.Ingredients))
 
-	err = RemoveIngredient(ctx, userID, recipe.ID, 0, ingredientID)
+	latestRecipe, err = RemoveIngredient(ctx, userID, recipe.ID, 0, ingredientID)
 	assert.Nil(t, err)
 
 	err = RemoveMethodStepByIndex(ctx, userID, recipe.ID, 0)
