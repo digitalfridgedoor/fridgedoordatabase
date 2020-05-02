@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"github.com/digitalfridgedoor/fridgedoordatabase/database"
-	"github.com/digitalfridgedoor/fridgedoordatabase/userview"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,7 +33,7 @@ func (coll *TestCollection) InsertOne(ctx context.Context, document interface{})
 	coll.coll[id] = document
 
 	// try update id on model
-	if u, ok := document.(*userview.View); ok {
+	if u, ok := document.(*dfdmodels.UserView); ok {
 		u.ID = id
 	}
 
