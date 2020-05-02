@@ -34,7 +34,7 @@ func AddIngredient(ctx context.Context, userID primitive.ObjectID, recipeID *pri
 		return nil, errors.New("Duplicate")
 	}
 
-	ing := dfdmodels.Ingredient{
+	ing := dfdmodels.RecipeIngredient{
 		Name:         ingredient,
 		IngredientID: ingredientID,
 	}
@@ -101,7 +101,7 @@ func RemoveIngredient(ctx context.Context, userID primitive.ObjectID, recipeID *
 		return nil, errUnauthorised
 	}
 
-	filterFn := func(id *dfdmodels.Ingredient) bool {
+	filterFn := func(id *dfdmodels.RecipeIngredient) bool {
 		return id.IngredientID != ingredientID
 	}
 
@@ -127,8 +127,8 @@ func containsIngredient(r *dfdmodels.MethodStep, ingredientID string) bool {
 	return false
 }
 
-func filterIngredients(ings []dfdmodels.Ingredient, filterFn func(ing *dfdmodels.Ingredient) bool) []dfdmodels.Ingredient {
-	filtered := []dfdmodels.Ingredient{}
+func filterIngredients(ings []dfdmodels.RecipeIngredient, filterFn func(ing *dfdmodels.RecipeIngredient) bool) []dfdmodels.RecipeIngredient {
+	filtered := []dfdmodels.RecipeIngredient{}
 
 	for _, ing := range ings {
 		if filterFn(&ing) {
@@ -139,8 +139,8 @@ func filterIngredients(ings []dfdmodels.Ingredient, filterFn func(ing *dfdmodels
 	return filtered
 }
 
-func updateByID(ings []dfdmodels.Ingredient, ingredientID string, updates map[string]string) []dfdmodels.Ingredient {
-	updated := make([]dfdmodels.Ingredient, len(ings))
+func updateByID(ings []dfdmodels.RecipeIngredient, ingredientID string, updates map[string]string) []dfdmodels.RecipeIngredient {
+	updated := make([]dfdmodels.RecipeIngredient, len(ings))
 
 	for index, ing := range ings {
 		if ing.IngredientID == ingredientID {

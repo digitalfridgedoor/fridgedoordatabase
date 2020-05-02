@@ -2,33 +2,30 @@ package ingredient
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 )
 
 // Create creates a new ingredient with given name
-func Create(ctx context.Context, name string) (*Ingredient, error) {
+func Create(ctx context.Context, name string) (*dfdmodels.Ingredient, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	insertOneOptions := options.InsertOne()
-
-	ingredient := &Ingredient{
+	ingredient := &dfdmodels.Ingredient{
 		Name:    name,
 		AddedOn: time.Now(),
 	}
 
-	insertOneResult, err := mongoCollection.InsertOne(ctx, ingredient, insertOneOptions)
+	insertedID, err := coll.c.InsertOne(ctx, ingredient)
 	if err != nil {
 		return nil, err
 	}
 
-	insertedID := insertOneResult.InsertedID.(primitive.ObjectID)
-
-	return FindOne(ctx, insertedID.Hex())
+	return coll.findOne(ctx, insertedID)
 }

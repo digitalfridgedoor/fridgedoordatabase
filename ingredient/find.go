@@ -2,18 +2,21 @@ package ingredient
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // FindByName finds ingredients starting with the given letter
-func FindByName(ctx context.Context, startsWith string) ([]*Ingredient, error) {
+func FindByName(ctx context.Context, startsWith string) ([]*dfdmodels.Ingredient, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -24,33 +27,35 @@ func FindByName(ctx context.Context, startsWith string) ([]*Ingredient, error) {
 	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
 	startsWithBson := bson.M{"name": regex}
 
-	cur, err := mongoCollection.Find(ctx, startsWithBson, findOptions)
+	ch, err := coll.c.Find(ctx, startsWithBson, findOptions, &dfdmodels.Ingredient{})
 	if err != nil {
-		return make([]*Ingredient, 0), err
+		return make([]*dfdmodels.Ingredient, 0), err
 	}
 
-	ingCh := fridgedoordatabase.Parse(ctx, cur, &Ingredient{})
+	results := make([]*dfdmodels.Ingredient, 0)
 
-	results := make([]*Ingredient, 0)
-
-	for i := range ingCh {
-		results = append(results, i.(*Ingredient))
+	for i := range ch {
+		results = append(results, i.(*dfdmodels.Ingredient))
 	}
 
 	return results, nil
 }
 
 // FindOne does not find one
-func FindOne(ctx context.Context, id string) (*Ingredient, error) {
+func FindOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Ingredient, error) {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	singleResult, err := collection.FindByID(ctx, id)
+	return coll.findOne(ctx, id)
+}
 
-	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Ingredient{})
+func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Ingredient, error) {
 
-	return ing.(*Ingredient), err
+	ing, err := coll.c.FindByID(ctx, id, &dfdmodels.Ingredient{})
+
+	return ing.(*dfdmodels.Ingredient), err
 }

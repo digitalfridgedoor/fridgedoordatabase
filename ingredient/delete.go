@@ -2,17 +2,19 @@ package ingredient
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // DeleteByID deletes an ingredient
-func DeleteByID(ctx context.Context, id primitive.ObjectID) error {
+func DeleteByID(ctx context.Context, id *primitive.ObjectID) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	return collection.DeleteByID(ctx, id)
+	return coll.c.DeleteByID(ctx, id)
 }
