@@ -23,7 +23,7 @@ func SetNickname(ctx context.Context, view *dfdmodels.UserView, nickname string)
 		return errNotConnected
 	}
 
-	return coll.c.UpdateByID(ctx, &view.ID, view)
+	return coll.c.UpdateByID(ctx, view.ID, view)
 }
 
 // AddTag adds a tag to users list if it isn't already there

@@ -27,7 +27,7 @@ func TestUpdateTags(t *testing.T) {
 
 	viewID := view.ID
 	tag := "tag"
-	err = AddTag(context.Background(), &view.ID, tag)
+	err = AddTag(context.Background(), view.ID, tag)
 	assert.Nil(t, err)
 
 	view, err = GetByUsername(context.Background(), username)
@@ -36,7 +36,7 @@ func TestUpdateTags(t *testing.T) {
 	assert.Equal(t, 1, len(view.Tags))
 	assert.Equal(t, tag, view.Tags[0])
 
-	err = AddTag(context.Background(), &view.ID, tag)
+	err = AddTag(context.Background(), view.ID, tag)
 	assert.Nil(t, err)
 
 	view, err = GetByUsername(context.Background(), username)
@@ -45,7 +45,7 @@ func TestUpdateTags(t *testing.T) {
 	assert.Equal(t, 1, len(view.Tags))
 	assert.Equal(t, tag, view.Tags[0])
 
-	err = RemoveTag(context.Background(), &viewID, tag)
+	err = RemoveTag(context.Background(), viewID, tag)
 	assert.Nil(t, err)
 
 	view, err = GetByUsername(context.Background(), username)

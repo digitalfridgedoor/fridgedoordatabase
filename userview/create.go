@@ -51,5 +51,5 @@ func Delete(ctx context.Context, username string) error {
 		return err
 	}
 
-	return coll.c.DeleteByID(ctx, &view.ID)
+	return coll.c.DeleteByID(ctx, view.ID)
 }
