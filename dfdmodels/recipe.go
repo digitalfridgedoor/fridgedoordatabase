@@ -53,3 +53,10 @@ type RecipeViewableBy struct {
 	Everyone bool                 `json:"everyone"`
 	Users    []primitive.ObjectID `json:"users"`
 }
+
+// RecipeDescription is a short representation of a recipe
+type RecipeDescription struct {
+	ID    primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Name  string             `json:"name"`
+	Image bool               `json:"image"`
+}

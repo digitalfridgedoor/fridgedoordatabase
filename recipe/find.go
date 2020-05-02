@@ -2,7 +2,9 @@ package recipe
 
 import (
 	"context"
-	"time"
+	"fmt"
+
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -14,34 +16,37 @@ import (
 )
 
 // FindOne finds a recipe by ID
-func FindOne(ctx context.Context, id string) (*Recipe, error) {
+func FindOne(ctx context.Context, id string) (*dfdmodels.Recipe, error) {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	singleResult, err := collection.FindByID(ctx, id)
+	r, err := coll.c.FindOne(ctx, id, &Recipe{})
 
-	ing, err := fridgedoordatabase.ParseSingleResult(singleResult, &Recipe{})
 	if err != nil {
 		return nil, err
 	}
 
-	return ing.(*Recipe), err
+	return r.(*Recipe), err
 }
 
 // FindByIds finds recipe by ID
-func FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, error) {
+func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*dfdmodels.Description, error) {
 
 	connected, mongoCollection := mongoCollection()
 	if !connected {
 		return nil, errNotConnected
 	}
 
-	// Pass these options to the Find method
+	if limit > 20 {
+		limit = 20
+	}
+
 	findOptions := options.Find()
-	findOptions.SetLimit(25)
+	findOptions.SetLimit(limit)
 
 	_in := bson.M{"$in": ids}
 	idin := bson.M{"_id": _in}
@@ -56,16 +61,19 @@ func FindByIds(ctx context.Context, ids []primitive.ObjectID) ([]*Description, e
 }
 
 // FindByName finds recipes starting with the given letter
-func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID) ([]*Recipe, error) {
+func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*Recipe, error) {
 
 	connected, mongoCollection := mongoCollection()
 	if !connected {
 		return nil, errNotConnected
 	}
 
-	// Pass these options to the Find method
+	if limit > 20 {
+		limit = 20
+	}
+
 	findOptions := options.Find()
-	findOptions.SetLimit(20)
+	findOptions.SetLimit(limit)
 
 	regex := bson.M{"$regex": primitive.Regex{Pattern: "\\b" + startsWith, Options: "i"}}
 	startsWithBson := bson.M{"name": regex}
@@ -88,32 +96,8 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 	return results, nil
 }
 
-// UserRecipes lists all the users recipes
-func UserRecipes(ctx context.Context, userID primitive.ObjectID) ([]*Description, error) {
-
-	connected, mongoCollection := mongoCollection()
-	if !connected {
-		return nil, errNotConnected
-	}
-
-	duration3s, _ := time.ParseDuration("3s")
-	findctx, cancelFunc := context.WithTimeout(ctx, duration3s)
-	defer cancelFunc()
-
-	// Pass these options to the Find method
-	findOptions := options.Find()
-	findOptions.SetLimit(25)
-
-	cur, err := mongoCollection.Find(findctx, bson.D{primitive.E{Key: "addedBy", Value: userID}}, findOptions)
-	if err != nil {
-		return make([]*Description, 0), err
-	}
-
-	return parseRecipe(ctx, cur)
-}
-
 // FindByTags finds recipes with the given tags
-func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string) ([]*Recipe, error) {
+func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string, limit int64) ([]*Recipe, error) {
 
 	// https://stackoverflow.com/questions/6940503/mongodb-get-documents-by-tags
 
@@ -122,9 +106,12 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 		return nil, errNotConnected
 	}
 
-	// Pass these options to the Find method
+	if limit > 20 {
+		limit = 20
+	}
+
 	findOptions := options.Find()
-	findOptions.SetLimit(20)
+	findOptions.SetLimit(limit)
 
 	// { $and: [ {tags: { $all: ["tag"] } }, { tags: { $nin: ["anothertag"] } } ] }
 
@@ -160,18 +147,19 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 }
 
 // FindPublic gets a users public recipes
-func FindPublic(ctx context.Context, userID primitive.ObjectID) ([]*Recipe, error) {
+func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]*Recipe, error) {
 
 	connected, mongoCollection := mongoCollection()
 	if !connected {
 		return nil, errNotConnected
 	}
 
-	// Pass these options to the Find method
-	findOptions := options.Find()
-	findOptions.SetLimit(20)
+	if limit > 20 {
+		limit = 20
+	}
 
-	// { "metadata.viewableby.everyone": true }
+	findOptions := options.Find()
+	findOptions.SetLimit(limit)
 
 	addedByBson := bson.M{"addedby": userID}
 	viewableByEveryone := bson.M{"metadata.viewableby.everyone": true}

@@ -2,18 +2,20 @@ package recipe
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 )
 
 // Create creates a new recipe with given name
-func Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recipe, error) {
+func Create(ctx context.Context, userID primitive.ObjectID, name string) (*dfdmodels.Recipe, error) {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -23,28 +25,21 @@ func Create(ctx context.Context, userID primitive.ObjectID, name string) (*Recip
 		AddedBy: userID,
 	}
 
-	insertedID, err := collection.InsertOne(ctx, recipe)
-	if err != nil {
-		return nil, err
-	}
+	r, err := coll.c.InsertOneAndFind(ctx, recipe, &Recipe{})
 
-	return FindOne(ctx, insertedID.Hex())
+	return r.(*dfdmodels.Recipe), nil
 }
 
 // Delete removes a recipe
-func Delete(ctx context.Context, recipeID primitive.ObjectID) error {
+func Delete(ctx context.Context, recipeID *primitive.ObjectID) error {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
-		return errNotConnected
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
+		return nil, errNotConnected
 	}
 
-	deleteOptions := options.Delete()
+	_, err := coll.c.DeleteByID(ctx, recipeID)
 
-	_, err := mongoCollection.DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: recipeID}}, deleteOptions)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

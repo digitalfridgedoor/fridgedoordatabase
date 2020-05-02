@@ -33,7 +33,7 @@ func TestTags(t *testing.T) {
 	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
-	results, err := FindByTags(ctx, userID, []string{tag}, []string{})
+	results, err := FindByTags(ctx, userID, []string{tag}, []string{}, 20)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(results))
 
@@ -41,7 +41,7 @@ func TestTags(t *testing.T) {
 	updates["tag_remove"] = tag
 	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 
-	results, err = FindByTags(ctx, userID, []string{tag}, []string{})
+	results, err = FindByTags(ctx, userID, []string{tag}, []string{}, 20)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(results))
 
@@ -71,7 +71,7 @@ func TestNinTags(t *testing.T) {
 	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
-	results, err := FindByTags(ctx, userID, []string{}, []string{tag})
+	results, err := FindByTags(ctx, userID, []string{}, []string{tag}, 20)
 	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(results), 1)
 
@@ -114,7 +114,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 
-	results, err := FindByTags(ctx, userID, []string{tag}, []string{anothertag})
+	results, err := FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(results))
 	assert.Equal(t, recipeName, results[0].Name)
@@ -124,14 +124,14 @@ func TestIncludeAndNinTags(t *testing.T) {
 	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
 	assert.Nil(t, err)
 
-	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag})
+	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(results))
 
 	updates = make(map[string]string)
 	updates["tag_remove"] = anothertag
 	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
-	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag})
+	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(results))
