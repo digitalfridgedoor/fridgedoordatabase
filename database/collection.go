@@ -51,3 +51,8 @@ func UserView(ctx context.Context) (bool, ICollection) {
 func Recipe(ctx context.Context) (bool, ICollection) {
 	return CreateCollection(ctx, "recipeapi", "recipes")
 }
+
+// Ingredient returns an ICollection for the mongodb collection ingredient
+func Ingredient(ctx context.Context) (bool, ICollection) {
+	return CreateCollection(ctx, "recipeapi", "ingredients")
+}

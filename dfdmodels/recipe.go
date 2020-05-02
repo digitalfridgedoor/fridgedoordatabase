@@ -20,14 +20,14 @@ type Recipe struct {
 
 // MethodStep is an instruction with a collection of ingredients
 type MethodStep struct {
-	Action      string       `json:"action"`
-	Description string       `json:"description"`
-	Time        string       `json:"time"`
-	Ingredients []Ingredient `json:"ingredients"`
+	Action      string             `json:"action"`
+	Description string             `json:"description"`
+	Time        string             `json:"time"`
+	Ingredients []RecipeIngredient `json:"ingredients"`
 }
 
-// Ingredient is the ingredient linked to each recipe
-type Ingredient struct {
+// RecipeIngredient is the ingredient linked to each recipe
+type RecipeIngredient struct {
 	Name         string `json:"name"`
 	Amount       string `json:"amount"`
 	Preperation  string `json:"preperation"`
