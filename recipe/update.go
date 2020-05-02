@@ -4,50 +4,57 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Rename changes the name of a recipe
-func Rename(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, name string) error {
+func Rename(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, name string) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return errNotConnected
+		return nil, errNotConnected
 	}
 
 	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
-		return errUnauthorised
+		return nil, errUnauthorised
 	}
 
 	recipe.Name = name
 
-	return coll.c.UpdateByID(ctx, recipeID, recipe)
+	err = coll.c.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	return coll.findOne(ctx, recipeID, userID)
 }
 
 // UpdateMetadata updates any information in metadata
-func UpdateMetadata(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, updates map[string]string) error {
+func UpdateMetadata(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, updates map[string]string) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return errNotConnected
+		return nil, errNotConnected
 	}
 
 	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
-		return errUnauthorised
+		return nil, errUnauthorised
 	}
 
 	if update, ok := updates["image"]; ok {
@@ -81,5 +88,10 @@ func UpdateMetadata(ctx context.Context, userID primitive.ObjectID, recipeID *pr
 		}
 	}
 
-	return coll.c.UpdateByID(ctx, recipeID, recipe)
+	err = coll.c.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	return coll.findOne(ctx, recipeID, userID)
 }

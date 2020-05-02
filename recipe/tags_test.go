@@ -25,7 +25,7 @@ func TestTags(t *testing.T) {
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
+	_, err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{tag}, []string{}, 20)
@@ -34,7 +34,7 @@ func TestTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_remove"] = tag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
+	_, err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{}, 20)
 	assert.Nil(t, err)
@@ -58,7 +58,7 @@ func TestNinTags(t *testing.T) {
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
+	_, err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{}, []string{tag}, 20)
@@ -93,10 +93,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
-	assert.Nil(t, err)
-
-	r, err := FindOne(ctx, recipe.ID, userID)
+	r, err := UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 
@@ -107,7 +104,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_add"] = anothertag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
+	_, err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
@@ -116,7 +113,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_remove"] = anothertag
-	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
+	_, err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
 
 	assert.Nil(t, err)
