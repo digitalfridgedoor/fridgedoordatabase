@@ -13,10 +13,12 @@ import (
 
 func TestFindOne(t *testing.T) {
 
+	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
+	assert.Nil(t, err)
 	id, err := primitive.ObjectIDFromHex("5dbc814c6eb36874255e7fd0")
 	assert.Nil(t, err)
 
-	r, err := FindOne(context.Background(), &id)
+	r, err := FindOne(context.Background(), &id, userID)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
@@ -80,7 +82,7 @@ func TestAddAndRemove(t *testing.T) {
 	err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
-	latestRecipe, err := FindOne(ctx, recipe.ID)
+	latestRecipe, err := FindOne(ctx, recipe.ID, userID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]

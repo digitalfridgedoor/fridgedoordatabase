@@ -28,7 +28,7 @@ func TestUpdate(t *testing.T) {
 	err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
-	latestRecipe, err := FindOne(ctx, recipe.ID)
+	latestRecipe, err := FindOne(ctx, recipe.ID, userID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]
@@ -39,7 +39,7 @@ func TestUpdate(t *testing.T) {
 	err = UpdateIngredient(ctx, userID, recipe.ID, 0, ingredientID, updates)
 	assert.Nil(t, err)
 
-	latestRecipe, err = FindOne(ctx, recipe.ID)
+	latestRecipe, err = FindOne(ctx, recipe.ID, userID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method = latestRecipe.Method[0]

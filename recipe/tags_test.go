@@ -96,7 +96,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
-	r, err := FindOne(ctx, recipe.ID)
+	r, err := FindOne(ctx, recipe.ID, userID)
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 
