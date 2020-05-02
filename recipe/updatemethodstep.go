@@ -12,17 +12,17 @@ import (
 )
 
 // AddMethodStep adds new method step to a recipe
-func AddMethodStep(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, action string) error {
+func AddMethodStep(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, action string) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return errNotConnected
+		return nil, errNotConnected
 	}
 
 	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	methodStep := dfdmodels.MethodStep{
@@ -31,7 +31,12 @@ func AddMethodStep(ctx context.Context, userID primitive.ObjectID, recipeID *pri
 
 	recipe.Method = append(recipe.Method, methodStep)
 
-	return coll.c.UpdateByID(ctx, recipeID, recipe)
+	err = coll.c.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	return coll.findOne(ctx, recipeID, userID)
 }
 
 // UpdateMethodStepByIndex updates method step at index

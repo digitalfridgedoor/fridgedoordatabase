@@ -22,10 +22,10 @@ func TestUpdate(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, recipeName, recipe.Name)
 
-	err = AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
+	latestRecipe, err := AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
 	assert.Nil(t, err)
 
-	latestRecipe, err := AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
+	latestRecipe, err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 	method := latestRecipe.Method[0]
 	assert.Equal(t, 1, len(method.Ingredients))

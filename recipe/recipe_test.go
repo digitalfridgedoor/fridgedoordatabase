@@ -2,8 +2,6 @@ package recipe
 
 import (
 	"context"
-	"os"
-	"strings"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -76,10 +74,10 @@ func TestAddAndRemove(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, "new recipe", recipe.Name)
 
-	err = AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
+	latestRecipe, err := AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
 	assert.Nil(t, err)
 
-	latestRecipe, err := AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
+	latestRecipe, err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]
@@ -92,16 +90,4 @@ func TestAddAndRemove(t *testing.T) {
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)
-}
-
-func getEnvironmentVariable(key string) string {
-	for _, e := range os.Environ() {
-		pair := strings.SplitN(e, "=", 2)
-		if pair[0] == key {
-			return pair[1]
-		}
-	}
-
-	os.Exit(1)
-	return ""
 }
