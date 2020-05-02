@@ -1,9 +1,12 @@
 package recipe
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // CanView returns whether the specfified user is authorized to view the recipe
-func (r *Recipe) CanView(userID primitive.ObjectID) bool {
+func CanView(r *dfdmodels.Recipe, userID primitive.ObjectID) bool {
 	if r.AddedBy == userID || r.Metadata.ViewableBy.Everyone {
 		return true
 	}
@@ -18,6 +21,6 @@ func (r *Recipe) CanView(userID primitive.ObjectID) bool {
 }
 
 // CanEdit returns whether the specfified user is authorized to edit the recipe
-func (r *Recipe) CanEdit(userID primitive.ObjectID) bool {
+func CanEdit(r *dfdmodels.Recipe, userID primitive.ObjectID) bool {
 	return r.AddedBy == userID
 }

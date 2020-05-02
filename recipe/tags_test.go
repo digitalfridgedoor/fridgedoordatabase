@@ -7,15 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestTags(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	ctx := context.Background()
-	connected := fridgedoordatabase.Connect(ctx, connectionstring)
-	assert.True(t, connected)
+
+	ctx := context.TODO()
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -25,12 +21,11 @@ func TestTags(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, recipeName, recipe.Name)
 
-	recipeIDString := recipe.ID.Hex()
 	tag := primitive.NewObjectID().Hex()
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{tag}, []string{}, 20)
@@ -39,7 +34,7 @@ func TestTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_remove"] = tag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{}, 20)
 	assert.Nil(t, err)
@@ -50,10 +45,7 @@ func TestTags(t *testing.T) {
 
 func TestNinTags(t *testing.T) {
 
-	connectionstring := getEnvironmentVariable("connectionstring")
 	ctx := context.Background()
-	connected := fridgedoordatabase.Connect(ctx, connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -62,13 +54,11 @@ func TestNinTags(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, recipeName, recipe.Name)
 
-	recipeIDString := recipe.ID.Hex()
-
 	tag := primitive.NewObjectID().Hex()
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err := FindByTags(ctx, userID, []string{}, []string{tag}, 20)
@@ -88,10 +78,8 @@ func TestNinTags(t *testing.T) {
 }
 
 func TestIncludeAndNinTags(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
+
 	ctx := context.Background()
-	connected := fridgedoordatabase.Connect(ctx, connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -100,17 +88,15 @@ func TestIncludeAndNinTags(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, recipeName, recipe.Name)
 
-	recipeIDString := recipe.ID.Hex()
-
 	tag := primitive.NewObjectID().Hex()
 	anothertag := primitive.NewObjectID().Hex()
 
 	updates := make(map[string]string)
 	updates["tag_add"] = tag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
-	r, err := FindOne(ctx, recipeIDString)
+	r, err := FindOne(ctx, recipe.ID)
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 
@@ -121,7 +107,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_add"] = anothertag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	assert.Nil(t, err)
 
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
@@ -130,7 +116,7 @@ func TestIncludeAndNinTags(t *testing.T) {
 
 	updates = make(map[string]string)
 	updates["tag_remove"] = anothertag
-	err = UpdateMetadata(ctx, userID, recipeIDString, updates)
+	err = UpdateMetadata(ctx, userID, recipe.ID, updates)
 	results, err = FindByTags(ctx, userID, []string{tag}, []string{anothertag}, 20)
 
 	assert.Nil(t, err)

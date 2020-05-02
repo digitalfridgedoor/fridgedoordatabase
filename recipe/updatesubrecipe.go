@@ -4,27 +4,30 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // AddSubRecipe adds a link between the recipe and the subrecipe
-func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string, subRecipeID string) error {
+func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	if recipeID == subRecipeID {
+	if *recipeID == *subRecipeID {
 		return errSubRecipe
 	}
 
-	recipe, err := FindOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -48,55 +51,50 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string,
 		return errSubRecipe
 	}
 
-	subRecipe.ParentIds = appendParentRecipeID(subRecipe.ParentIds, recipe.ID)
-	err = collection.UpdateByID(ctx, subRecipeID, subRecipe)
+	subRecipe.ParentIds = appendParentRecipeID(subRecipe.ParentIds, *recipe.ID)
+	err = coll.c.UpdateByID(ctx, subRecipeID, subRecipe)
 	if err != nil {
 		fmt.Printf("Error updating subrecipe: %v\n", err)
 		return err
 	}
 
-	recipe.Recipes = append(recipe.Recipes, SubRecipe{
-		RecipeID: subRecipe.ID,
+	recipe.Recipes = append(recipe.Recipes, dfdmodels.SubRecipe{
+		RecipeID: *subRecipe.ID,
 		Name:     subRecipe.Name,
 	})
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
 // RemoveSubRecipe the link between the recipe/subrecipe
-func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID string, subRecipeID string) error {
+func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	srID, err := primitive.ObjectIDFromHex(subRecipeID)
-	if err != nil {
-		fmt.Printf("Invalid object ID, %v.\n", subRecipeID)
-		return err
-	}
-
-	recipe, err := FindOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
 
-	filterFn := func(id *SubRecipe) bool {
-		return id.RecipeID != srID
+	filterFn := func(id *dfdmodels.SubRecipe) bool {
+		return id.RecipeID != *subRecipeID
 	}
 
 	recipe.Recipes = filterSubRecipes(recipe.Recipes, filterFn)
 
-	subRecipe, err := FindOne(ctx, subRecipeID)
+	subRecipe, err := coll.findOne(ctx, subRecipeID)
 	if err == nil {
-		subRecipe.ParentIds = removeParentRecipeID(subRecipe.ParentIds, recipe.ID)
-		err = collection.UpdateByID(ctx, subRecipeID, subRecipe)
+		subRecipe.ParentIds = removeParentRecipeID(subRecipe.ParentIds, *recipe.ID)
+		err = coll.c.UpdateByID(ctx, subRecipeID, subRecipe)
 		if err != nil {
 			fmt.Printf("Error updating subrecipe: %v.", err)
 		}
@@ -104,12 +102,12 @@ func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID stri
 		fmt.Printf("Could not find subrecipe with id=%v.\n", subRecipeID)
 	}
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
-func hasSubRecipe(r *Recipe, subRecipeID string) bool {
+func hasSubRecipe(r *dfdmodels.Recipe, subRecipeID *primitive.ObjectID) bool {
 	for _, subrecipe := range r.Recipes {
-		if subrecipe.RecipeID.Hex() == subRecipeID {
+		if subrecipe.RecipeID == *subRecipeID {
 			return true
 		}
 	}
@@ -117,8 +115,8 @@ func hasSubRecipe(r *Recipe, subRecipeID string) bool {
 	return false
 }
 
-func filterSubRecipes(subRecipes []SubRecipe, filterFn func(ing *SubRecipe) bool) []SubRecipe {
-	filtered := []SubRecipe{}
+func filterSubRecipes(subRecipes []dfdmodels.SubRecipe, filterFn func(ing *dfdmodels.SubRecipe) bool) []dfdmodels.SubRecipe {
+	filtered := []dfdmodels.SubRecipe{}
 
 	for _, sr := range subRecipes {
 		if filterFn(&sr) {

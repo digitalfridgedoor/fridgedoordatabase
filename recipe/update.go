@@ -8,42 +8,44 @@ import (
 )
 
 // Rename changes the name of a recipe
-func Rename(ctx context.Context, user primitive.ObjectID, recipeID string, name string) error {
+func Rename(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, name string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	recipe, err := FindOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
 
 	recipe.Name = name
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
 // UpdateMetadata updates any information in metadata
-func UpdateMetadata(ctx context.Context, user primitive.ObjectID, recipeID string, updates map[string]string) error {
+func UpdateMetadata(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, updates map[string]string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	recipe, err := FindOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID)
 	if err != nil {
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -79,5 +81,5 @@ func UpdateMetadata(ctx context.Context, user primitive.ObjectID, recipeID strin
 		}
 	}
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }

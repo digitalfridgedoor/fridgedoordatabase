@@ -6,17 +6,13 @@ import (
 
 	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
-
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // FindOne finds a recipe by ID
-func FindOne(ctx context.Context, id string) (*dfdmodels.Recipe, error) {
+func FindOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -24,20 +20,15 @@ func FindOne(ctx context.Context, id string) (*dfdmodels.Recipe, error) {
 		return nil, errNotConnected
 	}
 
-	r, err := coll.c.FindOne(ctx, id, &Recipe{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return r.(*Recipe), err
+	return coll.findOne(ctx, id)
 }
 
 // FindByIds finds recipe by ID
-func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*dfdmodels.Description, error) {
+func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*Description, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -52,19 +43,31 @@ func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*d
 	idin := bson.M{"_id": _in}
 
 	// todo: projection to only select the fields in Description?
-	cur, err := mongoCollection.Find(context.Background(), idin, findOptions)
+	ch, err := coll.c.Find(context.Background(), idin, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
 		return make([]*Description, 0), err
 	}
 
-	return parseRecipe(ctx, cur)
+	results := make([]*Description, 0)
+
+	for i := range ch {
+		r := i.(*dfdmodels.Recipe)
+		results = append(results, &Description{
+			ID:    r.ID,
+			Name:  r.Name,
+			Image: r.Metadata.Image,
+		})
+	}
+
+	return results, nil
 }
 
 // FindByName finds recipes starting with the given letter
-func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*Recipe, error) {
+func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*dfdmodels.Recipe, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -80,29 +83,28 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 	addedByBson := bson.M{"addedby": userID}
 	andBson := bson.M{"$and": []bson.M{startsWithBson, addedByBson}}
 
-	cur, err := mongoCollection.Find(ctx, andBson, findOptions)
+	ch, err := coll.c.Find(ctx, andBson, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*Recipe, 0), err
+		return make([]*dfdmodels.Recipe, 0), err
 	}
 
-	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+	results := make([]*dfdmodels.Recipe, 0)
 
-	results := make([]*Recipe, 0)
-
-	for i := range recipeCh {
-		results = append(results, i.(*Recipe))
+	for i := range ch {
+		results = append(results, i.(*dfdmodels.Recipe))
 	}
 
 	return results, nil
 }
 
 // FindByTags finds recipes with the given tags
-func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string, limit int64) ([]*Recipe, error) {
+func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string, limit int64) ([]*dfdmodels.Recipe, error) {
 
 	// https://stackoverflow.com/questions/6940503/mongodb-get-documents-by-tags
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -130,27 +132,26 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 		andBson = append(andBson, ninTagsBson)
 	}
 
-	cur, err := mongoCollection.Find(ctx, bson.M{"$and": andBson}, findOptions)
+	ch, err := coll.c.Find(ctx, bson.M{"$and": andBson}, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*Recipe, 0), err
+		return make([]*dfdmodels.Recipe, 0), err
 	}
 
-	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+	results := make([]*dfdmodels.Recipe, 0)
 
-	results := make([]*Recipe, 0)
-
-	for i := range recipeCh {
-		results = append(results, i.(*Recipe))
+	for i := range ch {
+		results = append(results, i.(*dfdmodels.Recipe))
 	}
 
 	return results, nil
 }
 
 // FindPublic gets a users public recipes
-func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]*Recipe, error) {
+func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]*dfdmodels.Recipe, error) {
 
-	connected, mongoCollection := mongoCollection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
@@ -165,30 +166,27 @@ func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]
 	viewableByEveryone := bson.M{"metadata.viewableby.everyone": true}
 	andBson := []bson.M{addedByBson, viewableByEveryone}
 
-	cur, err := mongoCollection.Find(ctx, bson.M{"$and": andBson}, findOptions)
+	ch, err := coll.c.Find(ctx, bson.M{"$and": andBson}, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*Recipe, 0), err
+		return make([]*dfdmodels.Recipe, 0), err
 	}
 
-	recipeCh := fridgedoordatabase.Parse(ctx, cur, &Recipe{})
+	results := make([]*dfdmodels.Recipe, 0)
 
-	results := make([]*Recipe, 0)
-
-	for i := range recipeCh {
-		results = append(results, i.(*Recipe))
+	for i := range ch {
+		results = append(results, i.(*dfdmodels.Recipe))
 	}
 
 	return results, nil
 }
 
-func parseRecipe(ctx context.Context, cur *mongo.Cursor) ([]*Description, error) {
-	ingCh := fridgedoordatabase.Parse(ctx, cur, &Description{})
+func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, error) {
 
-	results := make([]*Description, 0)
+	r, err := coll.c.FindByID(ctx, id, &dfdmodels.Recipe{})
 
-	for i := range ingCh {
-		results = append(results, i.(*Description))
+	if err != nil {
+		return nil, err
 	}
 
-	return results, nil
+	return r.(*dfdmodels.Recipe), err
 }

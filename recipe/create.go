@@ -19,13 +19,17 @@ func Create(ctx context.Context, userID primitive.ObjectID, name string) (*dfdmo
 		return nil, errNotConnected
 	}
 
-	recipe := &Recipe{
+	recipe := &dfdmodels.Recipe{
 		Name:    name,
 		AddedOn: time.Now(),
 		AddedBy: userID,
 	}
 
-	r, err := coll.c.InsertOneAndFind(ctx, recipe, &Recipe{})
+	r, err := coll.c.InsertOneAndFind(ctx, recipe, &dfdmodels.Recipe{})
+	if err != nil {
+		fmt.Printf("Error creating recipe, %v\n", err)
+		return nil, err
+	}
 
 	return r.(*dfdmodels.Recipe), nil
 }
@@ -36,10 +40,8 @@ func Delete(ctx context.Context, recipeID *primitive.ObjectID) error {
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return nil, errNotConnected
+		return errNotConnected
 	}
 
-	_, err := coll.c.DeleteByID(ctx, recipeID)
-
-	return err
+	return coll.c.DeleteByID(ctx, recipeID)
 }

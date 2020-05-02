@@ -7,15 +7,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestAddSubRecipe(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
+
 	ctx := context.Background()
-	connected := fridgedoordatabase.Connect(ctx, connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -30,34 +26,31 @@ func TestAddSubRecipe(t *testing.T) {
 	assert.NotNil(t, subRecipe)
 	assert.Equal(t, subRecipeName, subRecipe.Name)
 
-	recipeIDString := recipe.ID.Hex()
-	subRecipeIDString := subRecipe.ID.Hex()
-
-	err = AddSubRecipe(ctx, userID, recipeIDString, subRecipeIDString)
+	err = AddSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
 	assert.Nil(t, err)
 
-	latestRecipe, err := FindOne(ctx, recipeIDString)
+	latestRecipe, err := FindOne(ctx, recipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Recipes))
 	latestSubRecipe := latestRecipe.Recipes[0]
 
-	assert.Equal(t, subRecipe.ID, latestSubRecipe.RecipeID)
+	assert.Equal(t, *subRecipe.ID, latestSubRecipe.RecipeID)
 	assert.Equal(t, subRecipe.Name, subRecipeName)
 
 	// Check actual sub recipe
-	latestSubRecipeMain, err := FindOne(ctx, subRecipeIDString)
+	latestSubRecipeMain, err := FindOne(ctx, subRecipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestSubRecipeMain.ParentIds))
 
-	err = RemoveSubRecipe(ctx, userID, recipeIDString, subRecipeIDString)
+	err = RemoveSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
 	assert.Nil(t, err)
 
-	latestRecipe, err = FindOne(ctx, recipeIDString)
+	latestRecipe, err = FindOne(ctx, recipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(latestRecipe.Recipes))
 
 	// Check actual sub recipe
-	latestSubRecipeMain, err = FindOne(ctx, subRecipeIDString)
+	latestSubRecipeMain, err = FindOne(ctx, subRecipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(latestSubRecipeMain.ParentIds))
 

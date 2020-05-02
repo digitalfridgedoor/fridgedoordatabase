@@ -5,33 +5,36 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // AddIngredient adds an ingredient to a recipe
-func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID string, stepIdx int, ingredientID string, ingredient string) error {
+func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, ingredient string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
 
-	if methodStep.containsIngredient(ingredientID) {
+	if containsIngredient(methodStep, ingredientID) {
 		return errors.New("Duplicate")
 	}
 
-	ing := Ingredient{
+	ing := dfdmodels.Ingredient{
 		Name:         ingredient,
 		IngredientID: ingredientID,
 	}
@@ -39,24 +42,25 @@ func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID string
 	methodStep.Ingredients = append(methodStep.Ingredients, ing)
 	recipe.Method[stepIdx] = *methodStep
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
 // UpdateIngredient removes ingredient from recipe
-func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID string, stepIdx int, ingredientID string, updates map[string]string) error {
+func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, updates map[string]string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -64,39 +68,40 @@ func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID str
 	methodStep.Ingredients = updateByID(methodStep.Ingredients, ingredientID, updates)
 	recipe.Method[stepIdx] = *methodStep
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
 // RemoveIngredient removes ingredient from recipe
-func RemoveIngredient(ctx context.Context, user primitive.ObjectID, recipeID string, stepIdx int, ingredientID string) error {
+func RemoveIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string) error {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !recipe.CanEdit(user) {
+	if !CanEdit(recipe, user) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
 
-	filterFn := func(id *Ingredient) bool {
+	filterFn := func(id *dfdmodels.Ingredient) bool {
 		return id.IngredientID != ingredientID
 	}
 
 	methodStep.Ingredients = filterIngredients(methodStep.Ingredients, filterFn)
 	recipe.Method[stepIdx] = *methodStep
 
-	return collection.UpdateByID(ctx, recipeID, recipe)
+	return coll.c.UpdateByID(ctx, recipeID, recipe)
 }
 
-func (r *MethodStep) containsIngredient(ingredientID string) bool {
+func containsIngredient(r *dfdmodels.MethodStep, ingredientID string) bool {
 	for _, ing := range r.Ingredients {
 		if ing.IngredientID == ingredientID {
 			return true
@@ -106,8 +111,8 @@ func (r *MethodStep) containsIngredient(ingredientID string) bool {
 	return false
 }
 
-func filterIngredients(ings []Ingredient, filterFn func(ing *Ingredient) bool) []Ingredient {
-	filtered := []Ingredient{}
+func filterIngredients(ings []dfdmodels.Ingredient, filterFn func(ing *dfdmodels.Ingredient) bool) []dfdmodels.Ingredient {
+	filtered := []dfdmodels.Ingredient{}
 
 	for _, ing := range ings {
 		if filterFn(&ing) {
@@ -118,8 +123,8 @@ func filterIngredients(ings []Ingredient, filterFn func(ing *Ingredient) bool) [
 	return filtered
 }
 
-func updateByID(ings []Ingredient, ingredientID string, updates map[string]string) []Ingredient {
-	updated := make([]Ingredient, len(ings))
+func updateByID(ings []dfdmodels.Ingredient, ingredientID string, updates map[string]string) []dfdmodels.Ingredient {
+	updated := make([]dfdmodels.Ingredient, len(ings))
 
 	for index, ing := range ings {
 		if ing.IngredientID == ingredientID {

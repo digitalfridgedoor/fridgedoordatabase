@@ -9,16 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestFindOne(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
 
-	r, err := FindOne(context.Background(), "5dbc814c6eb36874255e7fd0")
+	id, err := primitive.ObjectIDFromHex("5dbc814c6eb36874255e7fd0")
+	assert.Nil(t, err)
+
+	r, err := FindOne(context.Background(), &id)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
@@ -29,9 +27,6 @@ func TestFindOne(t *testing.T) {
 }
 
 func TestFindStartingWith(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5de28cfd7633c82c6982cd0a")
 	assert.Nil(t, err)
@@ -44,9 +39,6 @@ func TestFindStartingWith(t *testing.T) {
 }
 
 func TestFindByTags(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 
@@ -58,9 +50,6 @@ func TestFindByTags(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -74,11 +63,8 @@ func TestCreate(t *testing.T) {
 }
 
 func TestAddAndRemove(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
 	ctx := context.Background()
 	ingredientID := "5d8f744446106c8aee8cde37"
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
 	recipeName := "new recipe"
@@ -88,24 +74,22 @@ func TestAddAndRemove(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, "new recipe", recipe.Name)
 
-	recipeIDString := recipe.ID.Hex()
-
-	err = AddMethodStep(ctx, userID, recipeIDString, "Add to pan")
+	err = AddMethodStep(ctx, userID, recipe.ID, "Add to pan")
 	assert.Nil(t, err)
 
-	err = AddIngredient(ctx, userID, recipeIDString, 0, ingredientID, "Test ing")
+	err = AddIngredient(ctx, userID, recipe.ID, 0, ingredientID, "Test ing")
 	assert.Nil(t, err)
 
-	latestRecipe, err := FindOne(ctx, recipeIDString)
+	latestRecipe, err := FindOne(ctx, recipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Method))
 	method := latestRecipe.Method[0]
 	assert.Equal(t, 1, len(method.Ingredients))
 
-	err = RemoveIngredient(ctx, userID, recipeIDString, 0, ingredientID)
+	err = RemoveIngredient(ctx, userID, recipe.ID, 0, ingredientID)
 	assert.Nil(t, err)
 
-	err = RemoveMethodStepByIndex(ctx, userID, recipeIDString, 0)
+	err = RemoveMethodStepByIndex(ctx, userID, recipe.ID, 0)
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)
