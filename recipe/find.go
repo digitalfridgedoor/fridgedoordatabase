@@ -23,35 +23,6 @@ func FindOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, er
 	return coll.findOne(ctx, id)
 }
 
-// FindByIds finds recipe by ID
-func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*Description, error) {
-
-	ok, coll := createCollection(ctx)
-	if !ok {
-		fmt.Println("Not connected")
-		return nil, errNotConnected
-	}
-
-	if limit > 20 {
-		limit = 20
-	}
-
-	findOptions := options.Find()
-	findOptions.SetLimit(limit)
-
-	_in := bson.M{"$in": ids}
-	idin := bson.M{"_id": _in}
-
-	// todo: projection to only select the fields in Description?
-	ch, err := coll.c.Find(context.Background(), idin, findOptions, &dfdmodels.Recipe{})
-	if err != nil {
-		return make([]*Description, 0), err
-	}
-
-	results := readChannel(ch)
-	return results, nil
-}
-
 // FindByName finds recipes starting with the given letter
 func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*Description, error) {
 
@@ -78,7 +49,7 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 		return []*Description{}, err
 	}
 
-	results := readChannel(ch)
+	results := readChannel(ch, userID)
 	return results, nil
 }
 
@@ -122,7 +93,7 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 		return []*Description{}, err
 	}
 
-	results := readChannel(ch)
+	results := readChannel(ch, userID)
 	return results, nil
 }
 
@@ -151,7 +122,7 @@ func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]
 		return make([]*Description, 0), err
 	}
 
-	results := readChannel(ch)
+	results := readChannel(ch, userID)
 	return results, nil
 }
 
@@ -166,16 +137,19 @@ func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*d
 	return r.(*dfdmodels.Recipe), err
 }
 
-func readChannel(ch <-chan interface{}) []*Description {
+func readChannel(ch <-chan interface{}, userID primitive.ObjectID) []*Description {
 	results := make([]*Description, 0)
 
 	for i := range ch {
 		r := i.(*dfdmodels.Recipe)
-		results = append(results, &Description{
-			ID:    r.ID,
-			Name:  r.Name,
-			Image: r.Metadata.Image,
-		})
+
+		if CanView(r, userID) {
+			results = append(results, &Description{
+				ID:    r.ID,
+				Name:  r.Name,
+				Image: r.Metadata.Image,
+			})
+		}
 	}
 
 	return results
