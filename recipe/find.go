@@ -12,7 +12,7 @@ import (
 )
 
 // FindOne finds a recipe by ID
-func FindOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, error) {
+func FindOne(ctx context.Context, id *primitive.ObjectID, userID primitive.ObjectID) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -20,7 +20,7 @@ func FindOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, er
 		return nil, errNotConnected
 	}
 
-	return coll.findOne(ctx, id)
+	return coll.findOne(ctx, id, userID)
 }
 
 // FindByName finds recipes starting with the given letter
@@ -126,7 +126,7 @@ func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]
 	return results, nil
 }
 
-func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*dfdmodels.Recipe, error) {
+func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID, userID primitive.ObjectID) (*dfdmodels.Recipe, error) {
 
 	r, err := coll.c.FindByID(ctx, id, &dfdmodels.Recipe{})
 
@@ -134,7 +134,12 @@ func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*d
 		return nil, err
 	}
 
-	return r.(*dfdmodels.Recipe), err
+	re := r.(*dfdmodels.Recipe)
+	if !CanView(re, userID) {
+		return nil, errUnauthorised
+	}
+
+	return re, err
 }
 
 func readChannel(ch <-chan interface{}, userID primitive.ObjectID) []*Description {

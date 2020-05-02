@@ -12,7 +12,7 @@ import (
 )
 
 // AddMethodStep adds new method step to a recipe
-func AddMethodStep(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, action string) error {
+func AddMethodStep(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, action string) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -20,7 +20,7 @@ func AddMethodStep(ctx context.Context, user primitive.ObjectID, recipeID *primi
 		return errNotConnected
 	}
 
-	recipe, err := coll.findOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func AddMethodStep(ctx context.Context, user primitive.ObjectID, recipeID *primi
 }
 
 // UpdateMethodStepByIndex updates method step at index
-func UpdateMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, updates map[string]string) error {
+func UpdateMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, updates map[string]string) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -43,13 +43,13 @@ func UpdateMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recip
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, userID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -60,7 +60,7 @@ func UpdateMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recip
 }
 
 // RemoveMethodStepByIndex removes method by index
-func RemoveMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int) error {
+func RemoveMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -72,12 +72,12 @@ func RemoveMethodStepByIndex(ctx context.Context, user primitive.ObjectID, recip
 		return errors.New("Invalid index")
 	}
 
-	recipe, err := coll.findOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -107,13 +107,13 @@ func updateMethodStep(methodStep *dfdmodels.MethodStep, updates map[string]strin
 	return methodStep
 }
 
-func (coll *collection) getMethodStepByID(ctx context.Context, recipeID *primitive.ObjectID, stepIdx int) (*dfdmodels.Recipe, *dfdmodels.MethodStep, error) {
+func (coll *collection) getMethodStepByID(ctx context.Context, recipeID *primitive.ObjectID, userID primitive.ObjectID, stepIdx int) (*dfdmodels.Recipe, *dfdmodels.MethodStep, error) {
 
 	if stepIdx < 0 {
 		return nil, nil, errors.New("Invalid index, " + strconv.Itoa(stepIdx))
 	}
 
-	recipe, err := coll.findOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 // AddSubRecipe adds a link between the recipe and the subrecipe
-func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
+func AddSubRecipe(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -22,12 +22,12 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primit
 		return errSubRecipe
 	}
 
-	recipe, err := coll.findOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -42,7 +42,7 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primit
 		return errDuplicate
 	}
 
-	subRecipe, err := FindOne(ctx, subRecipeID)
+	subRecipe, err := FindOne(ctx, subRecipeID, userID)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func AddSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primit
 }
 
 // RemoveSubRecipe the link between the recipe/subrecipe
-func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
+func RemoveSubRecipe(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, subRecipeID *primitive.ObjectID) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -75,12 +75,12 @@ func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *pri
 		return errNotConnected
 	}
 
-	recipe, err := coll.findOne(ctx, recipeID)
+	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -91,7 +91,7 @@ func RemoveSubRecipe(ctx context.Context, user primitive.ObjectID, recipeID *pri
 
 	recipe.Recipes = filterSubRecipes(recipe.Recipes, filterFn)
 
-	subRecipe, err := coll.findOne(ctx, subRecipeID)
+	subRecipe, err := coll.findOne(ctx, subRecipeID, userID)
 	if err == nil {
 		subRecipe.ParentIds = removeParentRecipeID(subRecipe.ParentIds, *recipe.ID)
 		err = coll.c.UpdateByID(ctx, subRecipeID, subRecipe)

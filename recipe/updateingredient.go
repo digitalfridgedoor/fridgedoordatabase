@@ -11,7 +11,7 @@ import (
 )
 
 // AddIngredient adds an ingredient to a recipe
-func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, ingredient string) error {
+func AddIngredient(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, ingredient string) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -19,13 +19,13 @@ func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primi
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, userID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -46,7 +46,7 @@ func AddIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primi
 }
 
 // UpdateIngredient removes ingredient from recipe
-func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, updates map[string]string) error {
+func UpdateIngredient(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string, updates map[string]string) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -54,13 +54,13 @@ func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID *pr
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, userID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
@@ -72,7 +72,7 @@ func UpdateIngredient(ctx context.Context, user primitive.ObjectID, recipeID *pr
 }
 
 // RemoveIngredient removes ingredient from recipe
-func RemoveIngredient(ctx context.Context, user primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string) error {
+func RemoveIngredient(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, ingredientID string) error {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -80,13 +80,13 @@ func RemoveIngredient(ctx context.Context, user primitive.ObjectID, recipeID *pr
 		return errNotConnected
 	}
 
-	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, stepIdx)
+	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, userID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
 		return err
 	}
 
-	if !CanEdit(recipe, user) {
+	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
 		return errUnauthorised
 	}
