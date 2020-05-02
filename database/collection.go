@@ -29,13 +29,13 @@ func mongoCollectionIsAnICollection() {
 }
 
 // CreateCollection gets a wrapped reference to a mongo collection
-func CreateCollection(database string, collection string) (bool, ICollection) {
+func CreateCollection(ctx context.Context, database string, collection string) (bool, ICollection) {
 
 	if override, ok := tryGetOverrideFor(database, collection); ok {
 		return true, override
 	}
 
-	if connected := Connect(); !connected {
+	if connected := Connect(ctx); !connected {
 		return false, nil
 	}
 
@@ -43,6 +43,6 @@ func CreateCollection(database string, collection string) (bool, ICollection) {
 }
 
 // UserView returns an ICollection for the mongodb collection users
-func UserView() (bool, ICollection) {
-	return CreateCollection("recipeapi", "userviews")
+func UserView(ctx context.Context) (bool, ICollection) {
+	return CreateCollection(ctx, "recipeapi", "userviews")
 }

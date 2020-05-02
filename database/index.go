@@ -11,7 +11,7 @@ import (
 )
 
 // Connect connects to the database using parameter from Systems Manager parameter store
-func Connect() bool {
+func Connect(ctx context.Context) bool {
 	if connected() {
 		return true
 	}
@@ -25,7 +25,7 @@ func Connect() bool {
 	fmt.Printf("Got connection string: len=%v\n", len(connectionString))
 
 	fmt.Printf("Connecting...\n")
-	connected := connect(context.Background(), connectionString)
+	connected := connect(ctx, connectionString)
 	fmt.Printf("Connected - %v.\n", connected)
 
 	return true
