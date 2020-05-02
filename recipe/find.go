@@ -48,22 +48,12 @@ func FindByIds(ctx context.Context, ids []primitive.ObjectID, limit int64) ([]*D
 		return make([]*Description, 0), err
 	}
 
-	results := make([]*Description, 0)
-
-	for i := range ch {
-		r := i.(*dfdmodels.Recipe)
-		results = append(results, &Description{
-			ID:    r.ID,
-			Name:  r.Name,
-			Image: r.Metadata.Image,
-		})
-	}
-
+	results := readChannel(ch)
 	return results, nil
 }
 
 // FindByName finds recipes starting with the given letter
-func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*dfdmodels.Recipe, error) {
+func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectID, limit int64) ([]*Description, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -85,20 +75,15 @@ func FindByName(ctx context.Context, startsWith string, userID primitive.ObjectI
 
 	ch, err := coll.c.Find(ctx, andBson, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*dfdmodels.Recipe, 0), err
+		return []*Description{}, err
 	}
 
-	results := make([]*dfdmodels.Recipe, 0)
-
-	for i := range ch {
-		results = append(results, i.(*dfdmodels.Recipe))
-	}
-
+	results := readChannel(ch)
 	return results, nil
 }
 
 // FindByTags finds recipes with the given tags
-func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string, limit int64) ([]*dfdmodels.Recipe, error) {
+func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, notTags []string, limit int64) ([]*Description, error) {
 
 	// https://stackoverflow.com/questions/6940503/mongodb-get-documents-by-tags
 
@@ -134,20 +119,15 @@ func FindByTags(ctx context.Context, userID primitive.ObjectID, tags []string, n
 
 	ch, err := coll.c.Find(ctx, bson.M{"$and": andBson}, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*dfdmodels.Recipe, 0), err
+		return []*Description{}, err
 	}
 
-	results := make([]*dfdmodels.Recipe, 0)
-
-	for i := range ch {
-		results = append(results, i.(*dfdmodels.Recipe))
-	}
-
+	results := readChannel(ch)
 	return results, nil
 }
 
 // FindPublic gets a users public recipes
-func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]*dfdmodels.Recipe, error) {
+func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]*Description, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
@@ -168,15 +148,10 @@ func FindPublic(ctx context.Context, userID primitive.ObjectID, limit int64) ([]
 
 	ch, err := coll.c.Find(ctx, bson.M{"$and": andBson}, findOptions, &dfdmodels.Recipe{})
 	if err != nil {
-		return make([]*dfdmodels.Recipe, 0), err
+		return make([]*Description, 0), err
 	}
 
-	results := make([]*dfdmodels.Recipe, 0)
-
-	for i := range ch {
-		results = append(results, i.(*dfdmodels.Recipe))
-	}
-
+	results := readChannel(ch)
 	return results, nil
 }
 
@@ -189,4 +164,19 @@ func (coll *collection) findOne(ctx context.Context, id *primitive.ObjectID) (*d
 	}
 
 	return r.(*dfdmodels.Recipe), err
+}
+
+func readChannel(ch <-chan interface{}) []*Description {
+	results := make([]*Description, 0)
+
+	for i := range ch {
+		r := i.(*dfdmodels.Recipe)
+		results = append(results, &Description{
+			ID:    r.ID,
+			Name:  r.Name,
+			Image: r.Metadata.Image,
+		})
+	}
+
+	return results
 }
