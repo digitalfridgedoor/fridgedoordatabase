@@ -44,7 +44,7 @@ func TestUpdate(t *testing.T) {
 	latestRecipe, err = RemoveIngredient(ctx, userID, recipe.ID, 0, ingredientID)
 	assert.Nil(t, err)
 
-	err = RemoveMethodStepByIndex(ctx, userID, recipe.ID, 0)
+	_, err = RemoveMethodStepByIndex(ctx, userID, recipe.ID, 0)
 	assert.Nil(t, err)
 
 	Delete(ctx, recipe.ID)

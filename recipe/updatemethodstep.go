@@ -35,61 +35,71 @@ func AddMethodStep(ctx context.Context, userID primitive.ObjectID, recipeID *pri
 }
 
 // UpdateMethodStepByIndex updates method step at index
-func UpdateMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, updates map[string]string) error {
+func UpdateMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int, updates map[string]string) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return errNotConnected
+		return nil, errNotConnected
 	}
 
 	recipe, methodStep, err := coll.getMethodStepByID(ctx, recipeID, userID, stepIdx)
 	if err != nil {
 		fmt.Printf("Error retreiving method step, %v.\n", err)
-		return err
+		return nil, err
 	}
 
 	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
-		return errUnauthorised
+		return nil, errUnauthorised
 	}
 
 	recipe.Method[stepIdx] = *updateMethodStep(methodStep, updates)
 
-	return coll.c.UpdateByID(ctx, recipeID, recipe)
+	err = coll.c.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	return coll.findOne(ctx, recipeID, userID)
 }
 
 // RemoveMethodStepByIndex removes method by index
-func RemoveMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int) error {
+func RemoveMethodStepByIndex(ctx context.Context, userID primitive.ObjectID, recipeID *primitive.ObjectID, stepIdx int) (*dfdmodels.Recipe, error) {
 
 	ok, coll := createCollection(ctx)
 	if !ok {
 		fmt.Println("Not connected")
-		return errNotConnected
+		return nil, errNotConnected
 	}
 
 	if stepIdx < 0 {
-		return errors.New("Invalid index")
+		return nil, errors.New("Invalid index")
 	}
 
 	recipe, err := coll.findOne(ctx, recipeID, userID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !CanEdit(recipe, userID) {
 		fmt.Println("User not authorised to update recipe")
-		return errUnauthorised
+		return nil, errUnauthorised
 	}
 
 	if len(recipe.Method) <= stepIdx {
-		return errors.New("Invalid index")
+		return nil, errors.New("Invalid index")
 	}
 
 	copy(recipe.Method[stepIdx:], recipe.Method[stepIdx+1:]) // Shift a[i+1:] left one index.
 	recipe.Method = recipe.Method[:len(recipe.Method)-1]     // Truncate slice.
 
-	return coll.c.UpdateByID(ctx, recipeID, recipe)
+	err = coll.c.UpdateByID(ctx, recipeID, recipe)
+	if err != nil {
+		return nil, err
+	}
+
+	return coll.findOne(ctx, recipeID, userID)
 }
 
 func updateMethodStep(methodStep *dfdmodels.MethodStep, updates map[string]string) *dfdmodels.MethodStep {

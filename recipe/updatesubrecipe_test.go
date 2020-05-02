@@ -26,10 +26,7 @@ func TestAddSubRecipe(t *testing.T) {
 	assert.NotNil(t, subRecipe)
 	assert.Equal(t, subRecipeName, subRecipe.Name)
 
-	err = AddSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
-	assert.Nil(t, err)
-
-	latestRecipe, err := FindOne(ctx, recipe.ID, userID)
+	latestRecipe, err := AddSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestRecipe.Recipes))
 	latestSubRecipe := latestRecipe.Recipes[0]
@@ -42,10 +39,7 @@ func TestAddSubRecipe(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(latestSubRecipeMain.ParentIds))
 
-	err = RemoveSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
-	assert.Nil(t, err)
-
-	latestRecipe, err = FindOne(ctx, recipe.ID, userID)
+	latestRecipe, err = RemoveSubRecipe(ctx, userID, recipe.ID, subRecipe.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(latestRecipe.Recipes))
 
