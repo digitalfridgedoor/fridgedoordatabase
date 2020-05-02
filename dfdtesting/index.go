@@ -1,8 +1,9 @@
 package dfdtesting
 
 import (
-	"github.com/maisiesadler/theilliminationgame/database"
-	"github.com/maisiesadler/theilliminationgame/models"
+	"github.com/digitalfridgedoor/fridgedoordatabase/database"
+	"github.com/digitalfridgedoor/fridgedoordatabase/userview"
+
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -14,9 +15,9 @@ func SetTestCollectionOverride() {
 }
 
 // SetUserViewFindPredicate overrides the logic to get the result for Find
-func SetUserViewFindPredicate(predicate func(*models.UserView, bson.M) bool) bool {
+func SetUserViewFindPredicate(predicate func(*userview.View, bson.M) bool) bool {
 	fn := func(value interface{}, filter bson.M) bool {
-		uv := value.(*models.UserView)
+		uv := value.(*userview.View)
 		return predicate(uv, filter)
 	}
 
