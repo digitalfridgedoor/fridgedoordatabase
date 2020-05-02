@@ -34,7 +34,7 @@ func (coll *TestCollection) InsertOne(ctx context.Context, document interface{})
 
 	// try update id on model
 	if u, ok := document.(*dfdmodels.UserView); ok {
-		u.ID = id
+		u.ID = &id
 	}
 
 	return &id, nil
