@@ -62,6 +62,8 @@ func TestNinTags(t *testing.T) {
 	assert.NotNil(t, recipe)
 	assert.Equal(t, recipeName, recipe.Name)
 
+	Create(ctx, userID, recipeName)
+
 	tag := primitive.NewObjectID().Hex()
 
 	updates := make(map[string]string)
