@@ -33,3 +33,25 @@ func SetUserViewFindByUsernamePredicate() {
 		return m["username"] == uv.Username
 	})
 }
+
+// SetRecipeFindByNamePredicate overrides logic for find recipe in FindByName method
+func SetRecipeFindByNamePredicate() {
+	SetRecipeFindPredicate(findRecipeByNameTestPredicate)
+}
+
+func findRecipeByNameTestPredicate(gs *dfdmodels.Recipe, m primitive.M) bool {
+
+	andval := m["$and"].([]bson.M)
+
+	addedby := andval[1]["addedby"].(primitive.ObjectID)
+	if addedby != gs.AddedBy {
+		return false
+	}
+
+	nameval := andval[0]["name"].(bson.M)
+	regexval := nameval["$regex"].(primitive.Regex)
+
+	r := regexp.MustCompile(regexval.Pattern)
+
+	return r.MatchString(gs.Name)
+}
