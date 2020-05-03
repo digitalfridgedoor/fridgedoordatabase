@@ -2,42 +2,47 @@ package plan
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/digitalfridgedoor/fridgedoordatabase"
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // FindByMonthAndYear finds users plan, or creates one
-func FindByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, error) {
-	plan, _, err := getOrCreateOne(ctx, userID, month, year)
+func FindByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) (*dfdmodels.Plan, error) {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
+		return nil, errNotConnected
+	}
+
+	plan, _, err := coll.getOrCreateOne(ctx, userID, month, year)
 	return plan, err
 }
 
 // FindOne finds a Plan by id
-func FindOne(ctx context.Context, planID primitive.ObjectID) (*Plan, error) {
+func FindOne(ctx context.Context, planID *primitive.ObjectID) (*dfdmodels.Plan, error) {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	singleResult, err := collection.FindByID(ctx, planID.Hex())
+	plan, err := coll.c.FindByID(ctx, planID, &dfdmodels.Plan{})
 	if err != nil {
 		return nil, err
 	}
 
-	plan, err := fridgedoordatabase.ParseSingleResult(singleResult, &Plan{})
-	if err != nil {
-		return nil, err
-	}
-
-	return plan.(*Plan), nil
+	return plan.(*dfdmodels.Plan), nil
 }
 
-func getOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, year int) (*Plan, bool, error) {
-	plan, err := findByMonthAndYear(ctx, userID, month, year)
+func (coll *collection) getOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, year int) (*dfdmodels.Plan, bool, error) {
+
+	plan, err := coll.findByMonthAndYear(ctx, userID, month, year)
 	if err != nil {
 		return nil, false, err
 	}
@@ -53,12 +58,7 @@ func getOrCreateOne(ctx context.Context, userID primitive.ObjectID, month int, y
 	return plan[0], false, nil
 }
 
-func findByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) ([]*Plan, error) {
-
-	connected, mongoCollection := mongoCollection()
-	if !connected {
-		return nil, errNotConnected
-	}
+func (coll *collection) findByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month int, year int) ([]*dfdmodels.Plan, error) {
 
 	// Pass these options to the Find method
 	findOptions := options.Find()
@@ -66,17 +66,15 @@ func findByMonthAndYear(ctx context.Context, userID primitive.ObjectID, month in
 
 	planBson := bson.M{"month": month, "year": year, "userid": userID}
 
-	cur, err := mongoCollection.Find(ctx, planBson, findOptions)
+	ch, err := coll.c.Find(ctx, planBson, findOptions, &dfdmodels.Plan{})
+
 	if err != nil {
 		return nil, err
 	}
+	results := make([]*dfdmodels.Plan, 0)
 
-	planCh := fridgedoordatabase.Parse(ctx, cur, &Plan{})
-
-	results := make([]*Plan, 0)
-
-	for i := range planCh {
-		results = append(results, i.(*Plan))
+	for i := range ch {
+		results = append(results, i.(*dfdmodels.Plan))
 	}
 
 	return results, nil

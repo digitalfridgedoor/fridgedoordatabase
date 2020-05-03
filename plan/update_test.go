@@ -4,16 +4,18 @@ import (
 	"context"
 	"testing"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+	"go.mongodb.org/mongo-driver/bson"
+
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdtesting"
+
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestCreate(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
+
+	dfdtesting.SetTestCollectionOverride()
 
 	checkExpectedDays(t, 1, 2019, 31)
 	checkExpectedDays(t, 2, 2019, 28)
@@ -35,9 +37,15 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
+
+	dfdtesting.SetTestCollectionOverride()
+	dfdtesting.SetPlanFindPredicate(func(p *dfdmodels.Plan, m bson.M) bool {
+		month := m["month"].(int)
+		year := m["year"].(int)
+		userid := m["userid"].(primitive.ObjectID)
+
+		return month == p.Month && year == p.Year && userid == p.UserID
+	})
 
 	userID, _ := primitive.ObjectIDFromHex("5d8f7321a7888700270f7753")
 	recipeID, _ := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
@@ -58,7 +66,7 @@ func TestUpdate(t *testing.T) {
 	updatedID, err := Update(context.TODO(), request)
 	assert.Nil(t, err)
 
-	plan, err := FindOne(context.TODO(), *updatedID)
+	plan, err := FindOne(context.TODO(), updatedID)
 	assert.Nil(t, err)
 	assert.NotNil(t, plan)
 	assert.Equal(t, name, plan.Days[18].Meal[0].Name)
@@ -68,14 +76,15 @@ func TestUpdate(t *testing.T) {
 	updatedID, err = Update(context.TODO(), request)
 	assert.Nil(t, err)
 
-	plan, err = FindOne(context.TODO(), *updatedID)
+	plan, err = FindOne(context.TODO(), updatedID)
 	assert.Nil(t, err)
 	assert.NotNil(t, plan)
 	assert.Equal(t, name, plan.Days[18].Meal[0].Name)
 	assert.Equal(t, anotherName, plan.Days[18].Meal[1].Name)
 
-	connected, collection := collection()
-	err = collection.DeleteByID(context.TODO(), *updatedID)
+	ok, coll := createCollection(context.TODO())
+	assert.True(t, ok)
+	err = coll.c.DeleteByID(context.TODO(), updatedID)
 	assert.Nil(t, err)
 }
 

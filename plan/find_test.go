@@ -2,39 +2,36 @@ package plan
 
 import (
 	"context"
-	"os"
-	"strings"
 	"testing"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdtesting"
+
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/digitalfridgedoor/fridgedoordatabase"
 )
 
 func TestFindByMonthAndYear(t *testing.T) {
-	connectionstring := getEnvironmentVariable("connectionstring")
-	connected := fridgedoordatabase.Connect(context.Background(), connectionstring)
-	assert.True(t, connected)
+
+	dfdtesting.SetTestCollectionOverride()
+	dfdtesting.SetPlanFindPredicate(func(p *dfdmodels.Plan, m bson.M) bool {
+		month := m["month"].(int)
+		year := m["year"].(int)
+		userid := m["userid"].(primitive.ObjectID)
+
+		return month == p.Month && year == p.Year && userid == p.UserID
+	})
+
+	ok, coll := createCollection(context.TODO())
+	assert.True(t, ok)
 
 	userID := primitive.NewObjectID()
 
-	r, err := findByMonthAndYear(context.Background(), userID, 1, 2020)
+	r, err := coll.findByMonthAndYear(context.Background(), userID, 1, 2020)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, 0, len(r))
-}
-
-func getEnvironmentVariable(key string) string {
-	for _, e := range os.Environ() {
-		pair := strings.SplitN(e, "=", 2)
-		if pair[0] == key {
-			return pair[1]
-		}
-	}
-
-	os.Exit(1)
-	return ""
 }

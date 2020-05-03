@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdmodels"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -21,12 +23,13 @@ type UpdateDayPlanRequest struct {
 // Update updates a Plan for a user
 func Update(ctx context.Context, updateRequest *UpdateDayPlanRequest) (*primitive.ObjectID, error) {
 
-	connected, collection := collection()
-	if !connected {
+	ok, coll := createCollection(ctx)
+	if !ok {
+		fmt.Println("Not connected")
 		return nil, errNotConnected
 	}
 
-	plan, isNew, err := getOrCreateOne(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
+	plan, isNew, err := coll.getOrCreateOne(ctx, updateRequest.UserID, updateRequest.Month, updateRequest.Year)
 	if err != nil {
 		return nil, err
 	}
@@ -39,31 +42,31 @@ func Update(ctx context.Context, updateRequest *UpdateDayPlanRequest) (*primitiv
 	currentPlanLength := len(plan.Days[updateRequest.Day-1].Meal)
 
 	if currentPlanLength == 0 {
-		plan.Days[updateRequest.Day-1].Meal = make([]Meal, updateRequest.MealIndex+1)
+		plan.Days[updateRequest.Day-1].Meal = make([]dfdmodels.Meal, updateRequest.MealIndex+1)
 	} else if currentPlanLength <= updateRequest.MealIndex {
 		diff := updateRequest.MealIndex + 1 - currentPlanLength
-		plan.Days[updateRequest.Day-1].Meal = append(plan.Days[updateRequest.Day-1].Meal, make([]Meal, diff)...)
+		plan.Days[updateRequest.Day-1].Meal = append(plan.Days[updateRequest.Day-1].Meal, make([]dfdmodels.Meal, diff)...)
 	}
 
 	plan.Days[updateRequest.Day-1].Meal[updateRequest.MealIndex].Name = updateRequest.RecipeName
 	plan.Days[updateRequest.Day-1].Meal[updateRequest.MealIndex].RecipeID = updateRequest.RecipeID
 
 	if isNew {
-		return collection.InsertOne(ctx, plan)
+		return coll.c.InsertOne(ctx, plan)
 	}
 
-	err = collection.UpdateByID(ctx, plan.ID.Hex(), plan)
-	return &plan.ID, err
+	err = coll.c.UpdateByID(ctx, plan.ID, plan)
+	return plan.ID, err
 }
 
-func create(userID primitive.ObjectID, month int, year int) (bool, *Plan) {
+func create(userID primitive.ObjectID, month int, year int) (bool, *dfdmodels.Plan) {
 	ok, dayLength := days(month, year)
 	if !ok {
 		return false, nil
 	}
 
-	days := make([]Day, dayLength)
-	return true, &Plan{
+	days := make([]dfdmodels.Day, dayLength)
+	return true, &dfdmodels.Plan{
 		UserID: userID,
 		Month:  month,
 		Year:   year,
