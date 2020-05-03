@@ -56,3 +56,8 @@ func Recipe(ctx context.Context) (bool, ICollection) {
 func Ingredient(ctx context.Context) (bool, ICollection) {
 	return CreateCollection(ctx, "recipeapi", "ingredients")
 }
+
+// Plan returns an ICollection for the mongodb collection plans
+func Plan(ctx context.Context) (bool, ICollection) {
+	return CreateCollection(ctx, "recipeapi", "plans")
+}
