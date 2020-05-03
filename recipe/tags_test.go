@@ -4,12 +4,17 @@ import (
 	"context"
 	"testing"
 
+	"github.com/digitalfridgedoor/fridgedoordatabase/dfdtesting"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTags(t *testing.T) {
+
+	dfdtesting.SetTestCollectionOverride()
+	dfdtesting.SetRecipeFindByTagsPredicate()
 
 	ctx := context.TODO()
 
@@ -45,6 +50,9 @@ func TestTags(t *testing.T) {
 
 func TestNinTags(t *testing.T) {
 
+	dfdtesting.SetTestCollectionOverride()
+	dfdtesting.SetRecipeFindByTagsPredicate()
+
 	ctx := context.Background()
 
 	userID, err := primitive.ObjectIDFromHex("5d8f7300a7888700270f7752")
@@ -78,6 +86,9 @@ func TestNinTags(t *testing.T) {
 }
 
 func TestIncludeAndNinTags(t *testing.T) {
+
+	dfdtesting.SetTestCollectionOverride()
+	dfdtesting.SetRecipeFindByTagsPredicate()
 
 	ctx := context.Background()
 
