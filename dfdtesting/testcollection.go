@@ -42,6 +42,9 @@ func (coll *TestCollection) InsertOne(ctx context.Context, document interface{})
 	if u, ok := document.(*dfdmodels.Ingredient); ok {
 		u.ID = &id
 	}
+	if u, ok := document.(*dfdmodels.Plan); ok {
+		u.ID = &id
+	}
 
 	return &id, nil
 }
