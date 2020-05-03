@@ -1,14 +1,10 @@
 allExitcodes=()
 
-go vet ./ingredient
-allExitcodes+=$?
 go vet ./recipe
 allExitcodes+=$?
 go vet ./userview
 allExitcodes+=$?
 
-go test ./ingredient
-allExitcodes+=$?
 go test ./recipe
 allExitcodes+=$?
 go test ./userview
