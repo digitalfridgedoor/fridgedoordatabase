@@ -6,11 +6,11 @@ import (
 
 // Plan represents a meal plan for a month
 type Plan struct {
-	ID     primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Month  int                `json:"month"`
-	Year   int                `json:"year"`
-	UserID primitive.ObjectID `json:"userID"`
-	Days   []Day              `json:"Days"`
+	ID     *primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Month  int                 `json:"month"`
+	Year   int                 `json:"year"`
+	UserID primitive.ObjectID  `json:"userID"`
+	Days   []Day               `json:"Days"`
 }
 
 // Day represents a meal plan for a day
