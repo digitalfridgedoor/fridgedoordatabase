@@ -38,6 +38,18 @@ func SetRecipeFindPredicate(predicate func(*dfdmodels.Recipe, bson.M) bool) bool
 	return true
 }
 
+// SetIngredientFindPredicate overrides the logic to get the result for Find
+func SetIngredientFindPredicate(predicate func(*dfdmodels.Ingredient, bson.M) bool) bool {
+	fn := func(value interface{}, filter bson.M) bool {
+		uv := value.(*dfdmodels.Ingredient)
+		return predicate(uv, filter)
+	}
+
+	coll := getOrAddTestCollection("recipeapi", "ingredients")
+	coll.findPredicate = fn
+	return true
+}
+
 func overrideDb(database string, collection string) database.ICollection {
 	return getOrAddTestCollection(database, collection)
 }
