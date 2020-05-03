@@ -26,3 +26,10 @@ func FindPlanByMonthAndYearTestPredicate(p *dfdmodels.Plan, m bson.M) bool {
 
 	return month == p.Month && year == p.Year && userid == p.UserID
 }
+
+// SetUserViewFindByUsernamePredicate overrides logic for find users by username
+func SetUserViewFindByUsernamePredicate() {
+	SetUserViewFindPredicate(func(uv *dfdmodels.UserView, m primitive.M) bool {
+		return m["username"] == uv.Username
+	})
+}
